@@ -1,23 +1,96 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&display=swap');
 @import "tailwindcss";
 
 @theme {
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
-
-  --color-slate-850: #1e293b;
-  --color-slate-950: #020617;
+  --font-serif: "Playfair Display", ui-serif, Georgia, serif;
+  
+  --color-paper: #F5F5F0;
+  --color-ink: #1A1A1A;
+  --color-ink-light: #4A4A4A;
+  --color-ink-lighter: #8E8E8E;
+  --color-accent: #D97757;
+  --color-accent-light: #F2A68D;
+  --color-border: #E5E5DF;
+  --color-border-dark: #D1D1CA;
 }
 
 @layer base {
   body {
-    @apply bg-slate-950 text-slate-200 antialiased font-sans;
+    background-color: var(--color-paper);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-serif);
   }
 }
 
 @layer components {
-  .glass-panel {
-    @apply bg-slate-900/70 backdrop-blur-xl border border-slate-800;
+  .font-serif {
+    font-family: var(--font-serif);
+  }
+
+  .data-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    border-top: 1px solid var(--color-border-dark);
+  }
+
+  .data-row {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 1fr;
+    padding: 1rem 0;
+    border-bottom: 1px solid var(--color-border);
+    align-items: center;
+  }
+
+  .data-row-header {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--color-ink-lighter);
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--color-border-dark);
+  }
+
+  .pill {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    font-family: var(--font-mono);
+    border: 1px solid var(--color-border-dark);
+  }
+
+  .pill-success {
+    background-color: #E6F4EA;
+    color: #137333;
+    border-color: #CEEAD6;
+  }
+
+  .pill-warning {
+    background-color: #FEF7E0;
+    color: #B06000;
+    border-color: #FAD2CF;
+  }
+
+  .pill-danger {
+    background-color: #FCE8E6;
+    color: #C5221F;
+    border-color: #FAD2CF;
+  }
+
+  .pill-neutral {
+    background-color: #F1F3F4;
+    color: #3C4043;
+    border-color: #DADCE0;
   }
 }
 
@@ -27,8 +100,12 @@
   height: 8px;
 }
 ::-webkit-scrollbar-track {
-  @apply bg-slate-950;
+  background-color: var(--color-paper);
 }
 ::-webkit-scrollbar-thumb {
-  @apply bg-slate-800 rounded-full hover:bg-slate-700;
+  background-color: var(--color-border-dark);
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background-color: var(--color-ink-lighter);
 }

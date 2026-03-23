@@ -1,166 +1,268 @@
-import { Robot } from '../types';
+import { Profession, Robot, Industry } from '../types';
+
+export const industries: { name: Industry; description: string }[] = [
+  { name: 'Logistics', description: 'Movement, storage, and processing of goods across the supply chain.' },
+  { name: 'Agriculture', description: 'Cultivation of plants and livestock for food, fiber, and other products.' },
+  { name: 'Manufacturing', description: 'Production of merchandise for use or sale using labor, machines, and tools.' },
+  { name: 'Medical', description: 'Healthcare delivery, surgery, patient care, and medical logistics.' },
+  { name: 'Food Service', description: 'Preparation, cooking, and serving of food in commercial settings.' },
+  { name: 'Construction', description: 'Building and assembly of infrastructure, commercial, and residential properties.' },
+  { name: 'Maintenance', description: 'Preservation and repair of equipment, buildings, and infrastructure.' },
+  { name: 'Retail', description: 'Sale of goods and services directly to consumers.' },
+  { name: 'Security', description: 'Protection of property, assets, and people from threats.' }
+];
+
+export const professions: Profession[] = [
+  {
+    id: 'prof_warehouse_picker',
+    name: 'Warehouse Order Picker',
+    industry: 'Logistics',
+    description: 'Responsible for navigating warehouse aisles, locating specific items, picking them from shelves or bins, and placing them into order totes or conveyor systems.',
+    blockers: [
+      'Grasping highly variable items (polybags, fragile items, odd shapes)',
+      'Navigating dynamic, unstructured environments with human workers',
+      'Handling items tightly packed in deep bins'
+    ],
+    tasks: [
+      {
+        id: 'task_navigate_aisles',
+        name: 'Navigate Aisles',
+        description: 'Move safely through warehouse aisles, avoiding obstacles and humans.',
+        difficulty: 'Medium',
+        environmentConstraints: ['Flat floors', 'Dynamic obstacles', 'Variable lighting']
+      },
+      {
+        id: 'task_identify_item',
+        name: 'Identify Item',
+        description: 'Visually locate the correct SKU among similar items in a bin.',
+        difficulty: 'Medium',
+        environmentConstraints: ['Variable lighting', 'Occlusion', 'Similar packaging']
+      },
+      {
+        id: 'task_grasp_item',
+        name: 'Grasp Variable Item',
+        description: 'Pick up an item regardless of its shape, weight, or packaging material.',
+        difficulty: 'Extreme',
+        environmentConstraints: ['Cluttered bins', 'Fragile items', 'Deformable packaging (polybags)']
+      },
+      {
+        id: 'task_place_item',
+        name: 'Place in Tote',
+        description: 'Transfer the grasped item into an order tote without dropping or damaging it.',
+        difficulty: 'Low',
+        environmentConstraints: ['Moving conveyors', 'Spatial packing']
+      }
+    ]
+  },
+  {
+    id: 'prof_fruit_picker',
+    name: 'Fruit Harvester',
+    industry: 'Agriculture',
+    description: 'Responsible for identifying ripe fruit on trees or vines, carefully detaching it without damaging the plant or fruit, and placing it in a collection bin.',
+    blockers: [
+      'Navigating uneven, muddy, or sloped terrain',
+      'Identifying ripeness under varying sunlight and occlusion by leaves',
+      'Grasping delicate fruit without bruising'
+    ],
+    tasks: [
+      {
+        id: 'task_navigate_orchard',
+        name: 'Navigate Orchard',
+        description: 'Move between rows of trees or vines on uneven ground.',
+        difficulty: 'High',
+        environmentConstraints: ['Uneven terrain', 'Mud/Dust', 'Weather conditions']
+      },
+      {
+        id: 'task_identify_ripe_fruit',
+        name: 'Identify Ripe Fruit',
+        description: 'Locate fruit and determine if it is ready for harvest based on color and size.',
+        difficulty: 'High',
+        environmentConstraints: ['Direct sunlight/shadows', 'Leaf occlusion', 'Variable fruit appearance']
+      },
+      {
+        id: 'task_grasp_delicate',
+        name: 'Grasp Delicate Fruit',
+        description: 'Hold the fruit firmly enough to detach but softly enough to avoid bruising.',
+        difficulty: 'Extreme',
+        environmentConstraints: ['Soft skin', 'Variable size', 'Clustered fruit']
+      },
+      {
+        id: 'task_detach_fruit',
+        name: 'Detach Fruit',
+        description: 'Remove the fruit from the stem without damaging the plant.',
+        difficulty: 'Medium',
+        environmentConstraints: ['Strong stems', 'Entangled branches']
+      }
+    ]
+  }
+];
 
 export const robots: Robot[] = [
   {
-    id: 'flippy-2',
-    name: 'Flippy 2',
-    manufacturer: 'Miso Robotics',
-    profession: 'Food Service',
-    subProfession: 'Fry Cook',
-    price: '$5,400/mo (RaaS)',
-    availability: 'Available',
-    autonomyScore: 75,
-    taskCoverage: 85,
-    videoUrl: 'https://www.youtube.com/embed/1N8Z4W6r_1c',
-    description: 'AI-powered fry station automation. Handles basket lifting, frying, and shaking for high-volume quick-service restaurants.',
-    limitations: [
-      'Requires human for restocking raw product',
-      'Limited to fried menu items',
-      'Needs periodic manual cleaning cycles',
-      'Cannot handle non-standard basket configurations'
-    ],
-    specs: {
-      'Throughput': '100 baskets/hour',
-      'Install Time': '3-4 hours',
-      'Power': 'Standard 120V',
-      'Size': '50% smaller than v1.0'
-    },
-    deploymentCount: '13+ chains (White Castle, Jack in the Box)',
-    sources: ['Miso Robotics SEC filings', 'Restaurant Dive 2024']
-  },
-  {
-    id: 'hadrian-x',
-    name: 'Hadrian X',
-    manufacturer: 'FBR',
-    profession: 'Construction',
-    subProfession: 'Bricklaying',
-    price: 'Project-based (WaaS)',
+    id: 'rob_agility_digit',
+    name: 'Digit',
+    manufacturer: 'Agility Robotics',
+    pricingModel: 'RaaS (Robot-as-a-Service)',
     availability: 'Pilot',
-    autonomyScore: 85,
-    taskCoverage: 90,
-    videoUrl: 'https://www.youtube.com/embed/3J9xJ9zJQ3Y',
-    description: 'Truck-mounted robotic bricklaying system. Uses 3D CAD models to build walls including door/window openings with high precision.',
+    deploymentCount: '100+',
     limitations: [
-      'Requires custom blocks',
-      'Human team needed for block supply logistics',
-      'Limited to single-story structures in current config',
-      'Weather-dependent (cannot operate in high wind)'
+      'Struggles with highly deformable objects like polybags',
+      'Battery life limits continuous operation to ~2 hours without charging',
+      'Payload capacity limited to 35 lbs (16 kg)'
     ],
-    specs: {
-      'Speed': '1,000 bricks/hour',
-      'Accuracy': '±0.5mm',
-      'Adhesive': 'Construction glue (mortarless)',
-      'Reach': '32 meters'
-    },
-    deploymentCount: '10+ projects in Australia/USA',
-    sources: ['FBR Annual Report 2024', 'Construction Dive']
+    evidence: [
+      {
+        id: 'ev_digit_amazon',
+        title: 'Amazon begins testing Digit in fulfillment centers',
+        url: 'https://www.aboutamazon.com/news/operations/amazon-agility-robotics-digit',
+        type: 'News',
+        verified: true,
+        deploymentType: 'Pilot'
+      },
+      {
+        id: 'ev_digit_gxo',
+        title: 'GXO deploys Digit for tote handling',
+        url: 'https://gxo.com/news/gxo-deploys-agility-robotics-digit/',
+        type: 'News',
+        verified: true,
+        deploymentType: 'Pilot'
+      }
+    ],
+    capabilities: [
+      {
+        taskId: 'task_navigate_aisles',
+        successLevel: 'Full',
+        confidenceScore: 95,
+        evidenceIds: ['ev_digit_amazon', 'ev_digit_gxo'],
+        notes: 'Bipedal locomotion handles flat warehouse floors and minor obstacles effortlessly.'
+      },
+      {
+        taskId: 'task_identify_item',
+        successLevel: 'Partial',
+        confidenceScore: 70,
+        evidenceIds: ['ev_digit_amazon'],
+        notes: 'Can identify standard totes and boxes, but struggles with complex, unstructured bins.'
+      },
+      {
+        taskId: 'task_grasp_item',
+        successLevel: 'Partial',
+        confidenceScore: 50,
+        evidenceIds: ['ev_digit_amazon'],
+        notes: 'Current end-effectors are designed for rigid totes, not individual, variable items.'
+      },
+      {
+        taskId: 'task_place_item',
+        successLevel: 'Full',
+        confidenceScore: 90,
+        evidenceIds: ['ev_digit_gxo'],
+        notes: 'Reliably places totes onto conveyors.'
+      }
+    ]
   },
   {
-    id: 'grid-maintenance-robot',
-    name: 'J-Type Maintenance Bot',
-    manufacturer: 'State Grid Corp of China',
-    profession: 'Maintenance',
-    subProfession: 'Electrical Grid Maintenance',
-    price: 'Internal Use / Govt Contract',
-    availability: 'Enterprise Only',
-    autonomyScore: 65,
-    taskCoverage: 40,
-    videoUrl: 'https://www.youtube.com/embed/example-grid-bot',
-    description: 'Specialized robot for high-voltage power line maintenance. Capable of climbing towers and performing basic repairs/inspections.',
-    limitations: [
-      'Requires remote human operator for complex repairs',
-      'Battery life limited for long-range tower hops',
-      'Struggles with extreme ice/snow buildup',
-      'Limited dexterity compared to human linemen'
-    ],
-    specs: {
-      'Voltage Rating': 'Up to 500kV',
-      'Weight': '45kg',
-      'Climb Speed': '5m/min',
-      'Sensors': 'LiDAR + Thermal Imaging'
-    },
-    deploymentCount: 'Widespread in Chinese provincial grids',
-    sources: ['State Grid Corp Reports', 'IEEE Spectrum']
-  },
-  {
-    id: 'davinci-5',
-    name: 'Da Vinci 5',
-    manufacturer: 'Intuitive Surgical',
-    profession: 'Medical',
-    subProfession: 'Surgery',
-    price: '$2.5M + $3k/procedure',
+    id: 'rob_bd_stretch',
+    name: 'Stretch',
+    manufacturer: 'Boston Dynamics',
+    pricingModel: 'Purchase / RaaS',
     availability: 'Available',
-    autonomyScore: 20,
-    taskCoverage: 95,
-    videoUrl: 'https://www.youtube.com/embed/daVinciDemo',
-    description: 'The gold standard in robotic-assisted surgery. Provides surgeons with enhanced vision, precision, and control.',
+    deploymentCount: '500+',
     limitations: [
-      'Zero autonomy (direct teleoperation)',
-      'High setup time per procedure',
-      'Requires specialized sterile team',
-      'Limited haptic feedback'
+      'Requires relatively flat surfaces for its mobile base',
+      'Designed primarily for case handling, not individual piece picking',
+      'Large footprint requires wide aisles'
     ],
-    specs: {
-      'Arms': '4 multi-jointed arms',
-      'Vision': '3D HD 10x magnification',
-      'Precision': 'Tremor filtration',
-      'Instruments': '70+ specialized tools'
-    },
-    deploymentCount: '8,000+ units installed globally',
-    sources: ['Intuitive Surgical Investor Relations', 'NIH Reports']
+    evidence: [
+      {
+        id: 'ev_stretch_dhl',
+        title: 'DHL Supply Chain invests $15M in Boston Dynamics Stretch',
+        url: 'https://bostondynamics.com/news/dhl-supply-chain-invests-15m-in-boston-dynamics-stretch-robots/',
+        type: 'News',
+        verified: true,
+        deploymentType: 'Production'
+      }
+    ],
+    capabilities: [
+      {
+        taskId: 'task_navigate_aisles',
+        successLevel: 'Full',
+        confidenceScore: 98,
+        evidenceIds: ['ev_stretch_dhl'],
+        notes: 'Omnidirectional mobile base navigates standard warehouse environments reliably.'
+      },
+      {
+        taskId: 'task_identify_item',
+        successLevel: 'Full',
+        confidenceScore: 95,
+        evidenceIds: ['ev_stretch_dhl'],
+        notes: 'Advanced vision system identifies boxes of varying sizes, even when tightly packed or skewed.'
+      },
+      {
+        taskId: 'task_grasp_item',
+        successLevel: 'Partial',
+        confidenceScore: 85,
+        evidenceIds: ['ev_stretch_dhl'],
+        notes: 'Smart vacuum gripper handles almost any cardboard box up to 50 lbs, but cannot handle non-flat/porous items.'
+      },
+      {
+        taskId: 'task_place_item',
+        successLevel: 'Full',
+        confidenceScore: 99,
+        evidenceIds: ['ev_stretch_dhl'],
+        notes: 'Places boxes onto conveyors with high precision and speed.'
+      }
+    ]
   },
   {
-    id: 'figure-02',
-    name: 'Figure 02',
-    manufacturer: 'Figure AI',
-    profession: 'Manufacturing',
-    subProfession: 'General Purpose Labor',
-    price: 'Pilot Pricing',
+    id: 'rob_tevel_aerobotics',
+    name: 'Flying Autonomous Robots (FAR)',
+    manufacturer: 'Tevel Aerobotics',
+    pricingModel: 'RaaS (Harvest-as-a-Service)',
     availability: 'Pilot',
-    autonomyScore: 35,
-    taskCoverage: 20,
-    videoUrl: 'https://www.youtube.com/embed/FigureAI2024',
-    description: 'Second-generation humanoid robot designed for commercial use. Currently being tested in automotive assembly lines.',
+    deploymentCount: 'Unknown (Dozens of systems)',
     limitations: [
-      'Short battery life (approx 5 hours)',
-      'Slow movement compared to specialized bots',
-      'Fragile in unstructured environments',
-      'Requires high-bandwidth low-latency connection'
+      'Tethered design limits range from the base vehicle',
+      'Wind and extreme weather can disrupt flight stability',
+      'Currently optimized for specific fruits (apples, peaches, plums)'
     ],
-    specs: {
-      'Height': '5\'6"',
-      'Payload': '20kg',
-      'AI': 'OpenAI-powered vision/language',
-      'DOF': '50 degrees of freedom'
-    },
-    deploymentCount: 'Active pilot at BMW Spartanburg',
-    sources: ['Figure AI Press Release', 'BMW Group News']
-  },
-  {
-    id: 'carbon-robotics-weeder',
-    name: 'LaserWeeder',
-    manufacturer: 'Carbon Robotics',
-    profession: 'Agriculture',
-    subProfession: 'Weeding',
-    price: '$1.4M (Purchase)',
-    availability: 'Available',
-    autonomyScore: 90,
-    taskCoverage: 95,
-    videoUrl: 'https://www.youtube.com/embed/WeedingBot',
-    description: 'Autonomous laser weeding robot. Uses AI to identify weeds and thermal energy to eliminate them without chemicals.',
-    limitations: [
-      'High power consumption',
-      'Struggles in extremely muddy conditions',
-      'Requires flat terrain for optimal speed',
-      'Limited to specific crop types (currently 40+)'
+    evidence: [
+      {
+        id: 'ev_tevel_demo',
+        title: 'Tevel Aerobotics Apple Harvesting',
+        url: 'https://www.tevel-tech.com/',
+        type: 'Video',
+        verified: true,
+        deploymentType: 'Pilot'
+      }
     ],
-    specs: {
-      'Speed': '2 acres/hour',
-      'Lasers': '30x 150W CO2 lasers',
-      'Chemicals': '0% herbicide used',
-      'Accuracy': 'Sub-millimeter'
-    },
-    deploymentCount: 'Dozens of large-scale farms in USA',
-    sources: ['Carbon Robotics', 'AgFunder News']
+    capabilities: [
+      {
+        taskId: 'task_navigate_orchard',
+        successLevel: 'Full',
+        confidenceScore: 90,
+        evidenceIds: ['ev_tevel_demo'],
+        notes: 'Base vehicle navigates rows, while tethered drones fly to reach fruit at any height, bypassing terrain issues.'
+      },
+      {
+        taskId: 'task_identify_ripe_fruit',
+        successLevel: 'Full',
+        confidenceScore: 85,
+        evidenceIds: ['ev_tevel_demo'],
+        notes: 'AI vision classifies fruit ripeness and detects foliage occlusion in real-time.'
+      },
+      {
+        taskId: 'task_grasp_delicate',
+        successLevel: 'Partial',
+        confidenceScore: 75,
+        evidenceIds: ['ev_tevel_demo'],
+        notes: 'Uses a suction mechanism to gently grasp fruit, reducing bruising compared to mechanical claws.'
+      },
+      {
+        taskId: 'task_detach_fruit',
+        successLevel: 'Full',
+        confidenceScore: 80,
+        evidenceIds: ['ev_tevel_demo'],
+        notes: 'Twisting motion combined with suction effectively detaches fruit.'
+      }
+    ]
   }
 ];

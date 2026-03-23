@@ -1,4 +1,4 @@
-export type Profession = 
+export type Industry = 
   | 'Agriculture' 
   | 'Construction' 
   | 'Logistics' 
@@ -9,20 +9,48 @@ export type Profession =
   | 'Retail' 
   | 'Security';
 
+export interface Task {
+  id: string;
+  name: string;
+  description: string;
+  difficulty: 'Low' | 'Medium' | 'High' | 'Extreme';
+  environmentConstraints: string[];
+}
+
+export interface Profession {
+  id: string;
+  name: string;
+  industry: Industry;
+  description: string;
+  tasks: Task[];
+  blockers: string[];
+}
+
+export interface Evidence {
+  id: string;
+  title: string;
+  url: string;
+  type: 'Video' | 'Paper' | 'News' | 'Company Claim';
+  verified: boolean;
+  deploymentType: 'Demo' | 'Pilot' | 'Production';
+}
+
+export interface Capability {
+  taskId: string;
+  successLevel: 'None' | 'Partial' | 'Full' | 'Superhuman';
+  confidenceScore: number; // 0-100
+  evidenceIds: string[];
+  notes: string;
+}
+
 export interface Robot {
   id: string;
   name: string;
   manufacturer: string;
-  profession: Profession;
-  subProfession: string;
-  price: string;
-  availability: 'Available' | 'Pre-order' | 'Pilot' | 'Enterprise Only' | 'Concept';
-  autonomyScore: number; // 0-100
-  taskCoverage: number; // 0-100
-  videoUrl: string;
-  description: string;
+  pricingModel: string;
+  availability: 'Concept' | 'Pilot' | 'Available';
+  deploymentCount: string;
+  capabilities: Capability[];
   limitations: string[];
-  specs: Record<string, string>;
-  deploymentCount?: string;
-  sources: string[];
+  evidence: Evidence[];
 }

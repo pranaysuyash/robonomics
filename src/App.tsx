@@ -1,507 +1,442 @@
 import { useState, useMemo } from 'react';
 import { 
   Search, 
-  Filter, 
   Cpu, 
-  TrendingUp, 
-  Zap, 
-  ShieldCheck, 
-  ExternalLink, 
-  Play, 
-  X,
   ChevronRight,
   Info,
-  DollarSign,
-  BarChart3
+  ExternalLink,
+  ShieldAlert,
+  CheckCircle2,
+  AlertCircle,
+  HelpCircle,
+  ArrowRight
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-import { robots } from './data/robots';
-import { Robot, Profession } from './types';
-
-const PROFESSIONS: Profession[] = [
-  'Agriculture', 
-  'Construction', 
-  'Logistics', 
-  'Food Service', 
-  'Medical', 
-  'Manufacturing', 
-  'Maintenance', 
-  'Retail', 
-  'Security'
-];
+import { robots, professions, industries } from './data/robots';
+import { Robot, Industry, Profession, Task, Capability } from './types';
 
 export default function App() {
-  const [selectedProfession, setSelectedProfession] = useState<Profession | 'All'>('All');
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedRobot, setSelectedRobot] = useState<Robot | null>(null);
+  const [selectedIndustry, setSelectedIndustry] = useState<Industry | null>(null);
+  const [selectedProfessionId, setSelectedProfessionId] = useState<string | null>(null);
+  const [selectedRobotId, setSelectedRobotId] = useState<string | null>(null);
 
-  const filteredRobots = useMemo(() => {
-    return robots.filter(robot => {
-      const matchesProfession = selectedProfession === 'All' || robot.profession === selectedProfession;
-      const matchesSearch = robot.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                           robot.manufacturer.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                           robot.subProfession.toLowerCase().includes(searchQuery.toLowerCase());
-      return matchesProfession && matchesSearch;
-    });
-  }, [selectedProfession, searchQuery]);
+  const activeProfession = professions.find(p => p.id === selectedProfessionId);
+  const activeRobot = robots.find(r => r.id === selectedRobotId);
 
   return (
-    <div className="min-h-screen flex flex-col">
-      {/* Navigation */}
-      <nav className="sticky top-0 z-50 glass-panel border-b border-slate-800 px-6 py-4">
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center shadow-lg shadow-cyan-500/20">
-              <Cpu className="text-slate-950 w-6 h-6" />
-            </div>
-            <div>
-              <h1 className="text-xl font-bold tracking-tight text-white">
-                Robot<span className="text-cyan-400">onomics</span>
-              </h1>
-              <p className="text-[10px] font-mono text-slate-500 uppercase tracking-widest">Mechanical Labor Database</p>
-            </div>
+    <div className="min-h-screen flex text-[#1A1A1A] bg-[#F5F5F0]">
+      {/* Sidebar Navigation */}
+      <aside className="w-72 border-r border-[#D1D1CA] p-8 flex flex-col gap-10 overflow-y-auto shrink-0">
+        <button 
+          onClick={() => {
+            setSelectedIndustry(null);
+            setSelectedProfessionId(null);
+            setSelectedRobotId(null);
+          }}
+          className="flex items-center gap-3 hover:opacity-80 transition-opacity text-left"
+        >
+          <div className="w-8 h-8 bg-[#1A1A1A] flex items-center justify-center rounded-sm shrink-0">
+            <Cpu className="text-[#F5F5F0] w-5 h-5" />
           </div>
+          <span className="text-xl font-serif font-bold tracking-tight">Robonomics</span>
+        </button>
 
-          <div className="hidden md:flex items-center gap-8 text-sm font-medium text-slate-400">
-            <a href="#" className="hover:text-cyan-400 transition-colors">Database</a>
-            <a href="#" className="hover:text-cyan-400 transition-colors">Autonomy Score</a>
-            <a href="#" className="hover:text-cyan-400 transition-colors">ROI Calculator</a>
-            <button className="px-4 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 transition-all text-white">
-              Submit Data
-            </button>
-          </div>
-        </div>
-      </nav>
-
-      {/* Hero Section */}
-      <section className="relative pt-20 pb-16 px-6 overflow-hidden">
-        <div className="absolute inset-0 -z-10">
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full bg-[radial-gradient(circle_at_top,_var(--tw-gradient-stops))] from-cyan-900/20 via-slate-950 to-slate-950"></div>
-          <div className="absolute inset-0 opacity-[0.03] bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]"></div>
-        </div>
-
-        <div className="max-w-4xl mx-auto text-center">
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-950/30 border border-cyan-500/20 text-cyan-400 text-xs font-mono mb-8"
-          >
-            <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span>
-            LIVE AUTOMATION TRACKER 2025
-          </motion.div>
-          
-          <motion.h2 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-            className="text-5xl md:text-7xl font-bold tracking-tight mb-6 bg-clip-text text-transparent bg-gradient-to-b from-white to-slate-500"
-          >
-            The State of <br /> Mechanical Labor
-          </motion.h2>
-          
-          <motion.p 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-            className="text-lg text-slate-400 max-w-2xl mx-auto mb-12 leading-relaxed"
-          >
-            Real-world pricing, availability, and autonomy scores for the robots automating every profession. From fry cooks to grid maintenance.
-          </motion.p>
-
-          {/* Stats Bar */}
-          <motion.div 
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.3 }}
-            className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-3xl mx-auto"
-          >
-            {[
-              { label: 'Robots Tracked', value: robots.length, icon: Cpu },
-              { label: 'Industries', value: PROFESSIONS.length, icon: Zap },
-              { label: 'Avg Autonomy', value: '42%', icon: TrendingUp },
-              { label: 'Market Cap', value: '$12.4B', icon: DollarSign },
-            ].map((stat, i) => (
-              <div key={i} className="glass-panel rounded-2xl p-4 border border-slate-800/50">
-                <div className="flex items-center justify-center gap-2 mb-1">
-                  <stat.icon className="w-3 h-3 text-cyan-500" />
-                  <span className="text-[10px] text-slate-500 uppercase tracking-wider font-semibold">{stat.label}</span>
+        <nav className="space-y-8">
+          {industries.map(ind => {
+            const indProfessions = professions.filter(p => p.industry === ind.name);
+            if (indProfessions.length === 0) return null;
+            
+            return (
+              <div key={ind.name}>
+                <h3 className="text-[10px] font-mono font-bold uppercase tracking-widest text-[#8E8E8E] mb-4">
+                  {ind.name}
+                </h3>
+                <div className="space-y-2">
+                  {indProfessions.map(p => (
+                    <button 
+                      key={p.id}
+                      onClick={() => {
+                        setSelectedIndustry(ind.name);
+                        setSelectedProfessionId(p.id);
+                        setSelectedRobotId(null);
+                      }}
+                      className={`block w-full text-left px-3 py-2 text-sm transition-all border-l-2 ${
+                        selectedProfessionId === p.id && !selectedRobotId
+                          ? 'border-[#D97757] text-[#1A1A1A] font-medium bg-[#E5E5DF]/30' 
+                          : 'border-transparent text-[#4A4A4A] hover:text-[#1A1A1A] hover:bg-[#E5E5DF]/20'
+                      }`}
+                    >
+                      {p.name}
+                    </button>
+                  ))}
                 </div>
-                <div className="text-2xl font-bold text-white font-mono">{stat.value}</div>
               </div>
-            ))}
-          </motion.div>
-        </div>
-      </section>
+            );
+          })}
+        </nav>
+      </aside>
 
-      {/* Filters & Search */}
-      <section className="sticky top-[73px] z-40 glass-panel border-y border-slate-800/50 py-4 px-6">
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row gap-4 items-center justify-between">
-          <div className="flex gap-2 overflow-x-auto pb-2 md:pb-0 w-full md:w-auto no-scrollbar">
-            <button 
-              onClick={() => setSelectedProfession('All')}
-              className={`px-4 py-2 rounded-xl text-sm font-medium transition-all whitespace-nowrap ${
-                selectedProfession === 'All' 
-                ? 'bg-cyan-500 text-slate-950 shadow-lg shadow-cyan-500/20' 
-                : 'bg-slate-900 text-slate-400 hover:bg-slate-800 border border-slate-800'
-              }`}
-            >
-              All Sectors
-            </button>
-            {PROFESSIONS.map(prof => (
-              <button 
-                key={prof}
-                onClick={() => setSelectedProfession(prof)}
-                className={`px-4 py-2 rounded-xl text-sm font-medium transition-all whitespace-nowrap ${
-                  selectedProfession === prof 
-                  ? 'bg-cyan-500 text-slate-950 shadow-lg shadow-cyan-500/20' 
-                  : 'bg-slate-900 text-slate-400 hover:bg-slate-800 border border-slate-800'
-                }`}
-              >
-                {prof}
-              </button>
-            ))}
-          </div>
-
-          <div className="relative w-full md:w-80">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
-            <input 
-              type="text" 
-              placeholder="Search robots, manufacturers..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-slate-950 border border-slate-800 rounded-xl py-2.5 pl-10 pr-4 text-sm text-white focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition-all outline-none"
+      {/* Main Content Area */}
+      <main className="flex-1 overflow-y-auto">
+        <AnimatePresence mode="wait">
+          {selectedRobotId && activeRobot ? (
+            <RobotView 
+              key="robot" 
+              robot={activeRobot} 
+              onBack={() => setSelectedRobotId(null)} 
             />
-          </div>
-        </div>
-      </section>
-
-      {/* Main Grid */}
-      <main className="flex-1 max-w-7xl mx-auto px-6 py-12 w-full">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <AnimatePresence mode="popLayout">
-            {filteredRobots.map((robot) => (
-              <RobotCard 
-                key={robot.id} 
-                robot={robot} 
-                onClick={() => setSelectedRobot(robot)} 
-              />
-            ))}
-          </AnimatePresence>
-        </div>
-
-        {filteredRobots.length === 0 && (
-          <div className="text-center py-20">
-            <div className="w-16 h-16 bg-slate-900 rounded-full flex items-center justify-center mx-auto mb-4 border border-slate-800">
-              <Search className="text-slate-600 w-8 h-8" />
-            </div>
-            <h3 className="text-xl font-semibold text-white">No robots found</h3>
-            <p className="text-slate-500">Try adjusting your filters or search query.</p>
-          </div>
-        )}
+          ) : activeProfession ? (
+            <ProfessionView 
+              key="profession" 
+              profession={activeProfession} 
+              onSelectRobot={setSelectedRobotId} 
+            />
+          ) : (
+            <HomeView 
+              key="home" 
+              onSelectProfession={setSelectedProfessionId} 
+            />
+          )}
+        </AnimatePresence>
       </main>
-
-      {/* Footer */}
-      <footer className="border-t border-slate-800 bg-slate-950 py-12 px-6">
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-8">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-slate-800 flex items-center justify-center">
-              <Cpu className="text-cyan-500 w-5 h-5" />
-            </div>
-            <span className="text-lg font-bold text-white">Robotonomics</span>
-          </div>
-          <p className="text-slate-500 text-sm max-w-md text-center md:text-right">
-            Data sourced from SEC filings, manufacturer disclosures, and industry reports. 
-            All autonomy scores are proprietary estimates based on task coverage and supervision ratios.
-          </p>
-        </div>
-      </footer>
-
-      {/* Detail Modal */}
-      <AnimatePresence>
-        {selectedRobot && (
-          <RobotDetail 
-            robot={selectedRobot} 
-            onClose={() => setSelectedRobot(null)} 
-          />
-        )}
-      </AnimatePresence>
     </div>
   );
 }
 
-interface RobotCardProps {
-  robot: Robot;
-  onClick: () => void;
-  key?: string | number;
-}
+function HomeView({ onSelectProfession }: { onSelectProfession: (id: string) => void, key?: string }) {
+  // Calculate global stats
+  const totalTasks = professions.reduce((acc, p) => acc + p.tasks.length, 0);
+  const automatedTasks = robots.flatMap(r => r.capabilities).filter(c => c.successLevel === 'Full' || c.successLevel === 'Superhuman').length;
+  const automationPercentage = Math.round((automatedTasks / (totalTasks || 1)) * 100);
 
-function RobotCard({ robot, onClick }: RobotCardProps) {
   return (
     <motion.div 
-      layout
-      initial={{ opacity: 0, scale: 0.9 }}
-      animate={{ opacity: 1, scale: 1 }}
-      exit={{ opacity: 0, scale: 0.9 }}
-      whileHover={{ y: -4 }}
-      onClick={onClick}
-      className="glass-panel rounded-2xl border border-slate-800/50 overflow-hidden cursor-pointer group hover:border-cyan-500/30 transition-all"
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -10 }}
+      className="max-w-5xl mx-auto p-12 lg:p-20"
     >
-      <div className="relative h-48 bg-slate-800/30 flex items-center justify-center overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-transparent z-10"></div>
-        <div className="text-7xl opacity-10 group-hover:scale-110 transition-transform duration-500">🤖</div>
-        
-        <div className="absolute top-4 right-4 z-20">
-          <span className={`px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider border ${
-            robot.availability === 'Available' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' :
-            robot.availability === 'Pilot' ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' :
-            'bg-blue-500/10 text-blue-400 border-blue-500/20'
-          }`}>
-            {robot.availability}
-          </span>
+      <header className="mb-20">
+        <h1 className="text-6xl font-serif font-bold text-[#1A1A1A] mb-8 leading-tight max-w-4xl">
+          The State of Global Automation
+        </h1>
+        <p className="text-2xl text-[#4A4A4A] max-w-3xl leading-relaxed font-serif italic">
+          A living intelligence system tracking the exact tasks blocking full automation across every industry.
+        </p>
+      </header>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-12 mb-20">
+        <div className="p-8 bg-white border border-[#E5E5DF] rounded-sm">
+          <div className="text-[10px] font-mono font-bold uppercase tracking-widest text-[#8E8E8E] mb-4">Global Task Coverage</div>
+          <div className="text-5xl font-serif font-bold text-[#1A1A1A] mb-2">{automationPercentage}%</div>
+          <p className="text-sm text-[#4A4A4A]">of tracked tasks have a 'Full' or 'Superhuman' robotic solution.</p>
         </div>
-
-        <div className="absolute bottom-4 left-4 z-20">
-          <div className="flex items-center gap-2">
-            <span className="px-2 py-0.5 rounded bg-slate-950/80 text-slate-400 text-[10px] font-mono border border-slate-800 uppercase tracking-wider">
-              {robot.profession}
-            </span>
-          </div>
+        <div className="p-8 bg-white border border-[#E5E5DF] rounded-sm">
+          <div className="text-[10px] font-mono font-bold uppercase tracking-widest text-[#8E8E8E] mb-4">Tracked Professions</div>
+          <div className="text-5xl font-serif font-bold text-[#1A1A1A] mb-2">{professions.length}</div>
+          <p className="text-sm text-[#4A4A4A]">jobs analyzed down to their atomic tasks and environmental constraints.</p>
         </div>
-      </div>
-
-      <div className="p-6">
-        <div className="flex justify-between items-start mb-4">
-          <div>
-            <h3 className="text-xl font-bold text-white group-hover:text-cyan-400 transition-colors">{robot.name}</h3>
-            <p className="text-sm text-slate-500">{robot.manufacturer}</p>
-          </div>
-          <div className="text-right">
-            <div className="text-[10px] text-slate-500 uppercase font-semibold mb-1">Autonomy</div>
-            <div className={`text-xl font-mono font-bold ${
-              robot.autonomyScore > 80 ? 'text-emerald-400' : 
-              robot.autonomyScore > 50 ? 'text-amber-400' : 
-              'text-red-400'
-            }`}>
-              {robot.autonomyScore}%
-            </div>
-          </div>
-        </div>
-
-        <div className="space-y-4">
-          <div>
-            <div className="flex justify-between text-[10px] mb-1.5">
-              <span className="text-slate-500 uppercase font-semibold">Task Coverage</span>
-              <span className="text-slate-300 font-mono">{robot.taskCoverage}%</span>
-            </div>
-            <div className="h-1.5 bg-slate-800 rounded-full overflow-hidden">
-              <motion.div 
-                initial={{ width: 0 }}
-                animate={{ width: `${robot.taskCoverage}%` }}
-                className="h-full bg-gradient-to-r from-cyan-500 to-blue-500"
-              />
-            </div>
-          </div>
-
-          <div className="flex items-center justify-between pt-4 border-t border-slate-800/50">
-            <div className="flex items-center gap-2 text-slate-400">
-              <DollarSign className="w-4 h-4 text-cyan-500" />
-              <span className="text-sm font-mono font-medium text-slate-200">{robot.price}</span>
-            </div>
-            <button className="p-2 rounded-lg bg-slate-800 text-slate-400 group-hover:bg-cyan-500 group-hover:text-slate-950 transition-all">
-              <ChevronRight className="w-4 h-4" />
-            </button>
-          </div>
+        <div className="p-8 bg-white border border-[#E5E5DF] rounded-sm">
+          <div className="text-[10px] font-mono font-bold uppercase tracking-widest text-[#8E8E8E] mb-4">Verified Deployments</div>
+          <div className="text-5xl font-serif font-bold text-[#1A1A1A] mb-2">{robots.reduce((acc, r) => acc + (r.deploymentCount === 'Unknown' ? 0 : parseInt(r.deploymentCount) || 0), 0)}+</div>
+          <p className="text-sm text-[#4A4A4A]">robots actively deployed in pilot or production environments.</p>
         </div>
       </div>
+
+      <section>
+        <h2 className="text-2xl font-serif font-bold mb-8 border-b border-[#D1D1CA] pb-4">
+          Industry Automation Reports
+        </h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          {industries.map(ind => {
+            const indProfessions = professions.filter(p => p.industry === ind.name);
+            if (indProfessions.length === 0) return null;
+
+            return (
+              <div key={ind.name} className="p-8 border border-[#D1D1CA] bg-[#F5F5F0] hover:bg-white transition-colors rounded-sm group">
+                <h3 className="text-xl font-bold text-[#1A1A1A] mb-3">{ind.name}</h3>
+                <p className="text-sm text-[#4A4A4A] mb-6 leading-relaxed">{ind.description}</p>
+                
+                <div className="space-y-2">
+                  <div className="text-[10px] font-mono font-bold uppercase tracking-widest text-[#8E8E8E] mb-3">Analyzed Professions</div>
+                  {indProfessions.map(p => (
+                    <button 
+                      key={p.id}
+                      onClick={() => onSelectProfession(p.id)}
+                      className="flex items-center justify-between w-full p-3 bg-white border border-[#E5E5DF] hover:border-[#D97757] transition-colors rounded-sm text-sm font-medium text-left group-hover:shadow-sm"
+                    >
+                      {p.name}
+                      <ArrowRight className="w-4 h-4 text-[#8E8E8E] group-hover:text-[#D97757]" />
+                    </button>
+                  ))}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </section>
     </motion.div>
   );
 }
 
-interface RobotDetailProps {
-  robot: Robot;
-  onClose: () => void;
+function ProfessionView({ profession, onSelectRobot }: { profession: Profession, onSelectRobot: (id: string) => void, key?: string }) {
+  // Calculate overall automation progress based on task difficulty and robot capabilities
+  const getTaskCoverage = (taskId: string) => {
+    const capabilities = robots.flatMap(r => r.capabilities.filter(c => c.taskId === taskId).map(c => ({ robot: r, capability: c })));
+    if (capabilities.length === 0) return { status: 'None', bestRobot: null, confidence: 0 };
+    
+    // Find the best capability
+    const best = capabilities.reduce((prev, current) => {
+      const scoreMap = { 'None': 0, 'Partial': 1, 'Full': 2, 'Superhuman': 3 };
+      if (scoreMap[current.capability.successLevel] > scoreMap[prev.capability.successLevel]) return current;
+      if (scoreMap[current.capability.successLevel] === scoreMap[prev.capability.successLevel] && current.capability.confidenceScore > prev.capability.confidenceScore) return current;
+      return prev;
+    });
+
+    return { status: best.capability.successLevel, bestRobot: best.robot, confidence: best.capability.confidenceScore };
+  };
+
+  return (
+    <motion.div 
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -10 }}
+      className="max-w-5xl mx-auto p-12 lg:p-20"
+    >
+      <header className="mb-16">
+        <div className="flex items-center gap-3 text-sm font-mono text-[#8E8E8E] mb-6">
+          <span>{profession.industry}</span>
+          <ChevronRight className="w-3 h-3" />
+          <span className="text-[#1A1A1A]">{profession.name}</span>
+        </div>
+        <h1 className="text-5xl font-serif font-bold text-[#1A1A1A] mb-6 leading-tight">
+          {profession.name}
+        </h1>
+        <p className="text-xl text-[#4A4A4A] max-w-3xl leading-relaxed">
+          {profession.description}
+        </p>
+      </header>
+
+      {/* Blockers Section - Prominent */}
+      <section className="mb-20 p-8 bg-[#FCE8E6] border border-[#FAD2CF] rounded-sm">
+        <h2 className="text-sm font-mono font-bold uppercase tracking-widest text-[#C5221F] mb-6 flex items-center gap-2">
+          <ShieldAlert className="w-4 h-4" /> Primary Automation Blockers
+        </h2>
+        <ul className="space-y-4">
+          {profession.blockers.map((blocker, i) => (
+            <li key={i} className="flex gap-4 text-[#1A1A1A]">
+              <div className="w-1.5 h-1.5 rounded-full bg-[#C5221F] mt-2 shrink-0" />
+              <span className="text-lg leading-relaxed">{blocker}</span>
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      {/* Task Breakdown */}
+      <section>
+        <h2 className="text-2xl font-serif font-bold mb-8 border-b border-[#D1D1CA] pb-4">
+          Task-Level Automation Map
+        </h2>
+        <div className="space-y-8">
+          {profession.tasks.map(task => {
+            const coverage = getTaskCoverage(task.id);
+            return (
+              <div key={task.id} className="p-8 border border-[#E5E5DF] bg-white rounded-sm shadow-sm">
+                <div className="flex flex-col lg:flex-row gap-8">
+                  {/* Task Info */}
+                  <div className="flex-1">
+                    <div className="flex items-center gap-3 mb-3">
+                      <h3 className="text-xl font-bold text-[#1A1A1A]">{task.name}</h3>
+                      <span className={`text-[10px] font-mono px-2 py-0.5 border rounded-sm ${
+                        task.difficulty === 'Extreme' ? 'border-[#FAD2CF] text-[#C5221F] bg-[#FCE8E6]' :
+                        task.difficulty === 'High' ? 'border-[#FAD2CF] text-[#B06000] bg-[#FEF7E0]' :
+                        'border-[#E5E5DF] text-[#4A4A4A] bg-[#F5F5F0]'
+                      }`}>
+                        {task.difficulty} Difficulty
+                      </span>
+                    </div>
+                    <p className="text-[#4A4A4A] mb-4">{task.description}</p>
+                    <div className="flex flex-wrap gap-2">
+                      {task.environmentConstraints.map(c => (
+                        <span key={c} className="text-xs text-[#8E8E8E] bg-[#F5F5F0] px-2 py-1 rounded-sm">
+                          {c}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Automation Status */}
+                  <div className="w-full lg:w-72 border-t lg:border-t-0 lg:border-l border-[#E5E5DF] pt-6 lg:pt-0 lg:pl-8">
+                    <div className="text-[10px] font-mono font-bold uppercase tracking-widest text-[#8E8E8E] mb-3">
+                      Current State of the Art
+                    </div>
+                    
+                    <div className="flex items-center gap-3 mb-4">
+                      {coverage.status === 'Full' || coverage.status === 'Superhuman' ? (
+                        <CheckCircle2 className="w-6 h-6 text-[#137333]" />
+                      ) : coverage.status === 'Partial' ? (
+                        <AlertCircle className="w-6 h-6 text-[#B06000]" />
+                      ) : (
+                        <HelpCircle className="w-6 h-6 text-[#8E8E8E]" />
+                      )}
+                      <span className="text-lg font-bold">
+                        {coverage.status === 'None' ? 'Not Automated' : coverage.status}
+                      </span>
+                    </div>
+
+                    {coverage.bestRobot && (
+                      <div>
+                        <div className="text-xs text-[#4A4A4A] mb-2">Leading Solution:</div>
+                        <button 
+                          onClick={() => onSelectRobot(coverage.bestRobot!.id)}
+                          className="flex items-center justify-between w-full p-3 bg-[#F5F5F0] hover:bg-[#E5E5DF] transition-colors rounded-sm text-sm font-medium border border-[#D1D1CA]"
+                        >
+                          {coverage.bestRobot.name}
+                          <ArrowRight className="w-4 h-4 text-[#8E8E8E]" />
+                        </button>
+                        <div className="mt-2 text-[10px] font-mono text-[#8E8E8E] text-right">
+                          Confidence: {coverage.confidence}%
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </section>
+    </motion.div>
+  );
 }
 
-function RobotDetail({ robot, onClose }: RobotDetailProps) {
+function RobotView({ robot, onBack }: { robot: Robot, onBack: () => void, key?: string }) {
+  // Find which tasks this robot attempts
+  const capabilities = robot.capabilities.map(c => {
+    const task = professions.flatMap(p => p.tasks).find(t => t.id === c.taskId);
+    return { ...c, task };
+  }).filter(c => c.task);
+
   return (
-    <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 md:p-6">
-      <motion.div 
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        onClick={onClose}
-        className="absolute inset-0 bg-slate-950/90 backdrop-blur-sm"
-      />
-      
-      <motion.div 
-        initial={{ opacity: 0, scale: 0.95, y: 20 }}
-        animate={{ opacity: 1, scale: 1, y: 0 }}
-        exit={{ opacity: 0, scale: 0.95, y: 20 }}
-        className="relative w-full max-w-4xl max-h-[90vh] glass-panel rounded-3xl border border-slate-800 overflow-hidden flex flex-col shadow-2xl"
+    <motion.div 
+      initial={{ opacity: 0, x: 20 }}
+      animate={{ opacity: 1, x: 0 }}
+      exit={{ opacity: 0, x: -20 }}
+      className="max-w-5xl mx-auto p-12 lg:p-20"
+    >
+      <button 
+        onClick={onBack}
+        className="flex items-center gap-2 text-sm font-mono text-[#8E8E8E] hover:text-[#1A1A1A] mb-12 transition-colors"
       >
-        {/* Modal Header */}
-        <div className="flex items-center justify-between p-6 border-b border-slate-800">
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-2xl bg-slate-800 flex items-center justify-center">
-              <Cpu className="text-cyan-500 w-6 h-6" />
-            </div>
-            <div>
-              <h2 className="text-2xl font-bold text-white">{robot.name}</h2>
-              <p className="text-slate-400 text-sm">{robot.manufacturer} • {robot.subProfession}</p>
-            </div>
+        <ArrowRight className="w-4 h-4 rotate-180" /> Back to Profession
+      </button>
+
+      <header className="mb-16 flex flex-col lg:flex-row justify-between items-start gap-8">
+        <div>
+          <h1 className="text-5xl font-serif font-bold text-[#1A1A1A] mb-4">
+            {robot.name}
+          </h1>
+          <div className="text-xl text-[#4A4A4A] font-medium">
+            by {robot.manufacturer}
           </div>
-          <button 
-            onClick={onClose}
-            className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-400 transition-colors"
-          >
-            <X className="w-6 h-6" />
-          </button>
         </div>
+        
+        <div className="flex gap-4">
+          <div className="p-4 bg-white border border-[#E5E5DF] rounded-sm min-w-[120px]">
+            <div className="text-[10px] font-mono font-bold uppercase tracking-widest text-[#8E8E8E] mb-1">Status</div>
+            <div className="font-medium">{robot.availability}</div>
+          </div>
+          <div className="p-4 bg-white border border-[#E5E5DF] rounded-sm min-w-[120px]">
+            <div className="text-[10px] font-mono font-bold uppercase tracking-widest text-[#8E8E8E] mb-1">Deployments</div>
+            <div className="font-medium">{robot.deploymentCount}</div>
+          </div>
+        </div>
+      </header>
 
-        {/* Modal Content */}
-        <div className="flex-1 overflow-y-auto p-6 md:p-8">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {/* Left Column: Visuals & Core Info */}
-            <div className="space-y-8">
-              <div className="aspect-video bg-slate-800 rounded-2xl border border-slate-700 flex items-center justify-center relative group overflow-hidden">
-                <Play className="w-12 h-12 text-cyan-500 group-hover:scale-110 transition-transform" />
-                <div className="absolute inset-0 bg-cyan-500/5 opacity-0 group-hover:opacity-100 transition-opacity" />
-                <div className="absolute bottom-4 left-4 text-[10px] font-mono text-slate-500 uppercase tracking-widest">
-                  Video Demonstration
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="p-4 rounded-2xl bg-slate-900/50 border border-slate-800">
-                  <div className="text-[10px] text-slate-500 uppercase font-bold mb-1">Pricing Model</div>
-                  <div className="text-lg font-bold text-white font-mono">{robot.price}</div>
-                </div>
-                <div className="p-4 rounded-2xl bg-slate-900/50 border border-slate-800">
-                  <div className="text-[10px] text-slate-500 uppercase font-bold mb-1">Availability</div>
-                  <div className="text-lg font-bold text-white">{robot.availability}</div>
-                </div>
-              </div>
-
-              <div>
-                <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4 flex items-center gap-2">
-                  <Info className="w-4 h-4 text-cyan-500" />
-                  Description
-                </h3>
-                <p className="text-slate-300 leading-relaxed">
-                  {robot.description}
-                </p>
-              </div>
-
-              <div>
-                <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4 flex items-center gap-2">
-                  <Zap className="w-4 h-4 text-cyan-500" />
-                  Technical Specifications
-                </h3>
-                <div className="grid grid-cols-1 gap-2">
-                  {Object.entries(robot.specs).map(([key, value]) => (
-                    <div key={key} className="flex justify-between items-center py-2 border-b border-slate-800/50">
-                      <span className="text-slate-500 text-sm">{key}</span>
-                      <span className="text-white font-mono text-sm">{value}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            {/* Right Column: Autonomy Analysis */}
-            <div className="space-y-8">
-              <div className="p-6 rounded-3xl bg-slate-950 border border-slate-800 shadow-inner">
-                <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-6 flex items-center gap-2">
-                  <BarChart3 className="w-4 h-4 text-cyan-500" />
-                  Autonomy Analysis
-                </h3>
-                
-                <div className="flex items-center gap-8 mb-8">
-                  <div className="relative w-32 h-32">
-                    <svg className="w-32 h-32 transform -rotate-90">
-                      <circle cx="64" cy="64" r="56" stroke="#1e293b" strokeWidth="12" fill="none" />
-                      <motion.circle 
-                        cx="64" cy="64" r="56" 
-                        stroke="currentColor" 
-                        strokeWidth="12" 
-                        fill="none" 
-                        strokeDasharray="351.8"
-                        initial={{ strokeDashoffset: 351.8 }}
-                        animate={{ strokeDashoffset: 351.8 - (351.8 * robot.autonomyScore / 100) }}
-                        className={robot.autonomyScore > 80 ? 'text-emerald-500' : robot.autonomyScore > 50 ? 'text-amber-500' : 'text-red-500'}
-                        strokeLinecap="round"
-                      />
-                    </svg>
-                    <div className="absolute inset-0 flex flex-col items-center justify-center">
-                      <span className="text-3xl font-bold text-white font-mono">{robot.autonomyScore}%</span>
-                      <span className="text-[8px] text-slate-500 uppercase font-bold">Autonomy</span>
-                    </div>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
+        <div className="lg:col-span-2 space-y-16">
+          
+          {/* Real-World Capability vs Claims */}
+          <section>
+            <h2 className="text-2xl font-serif font-bold mb-8 border-b border-[#D1D1CA] pb-4">
+              Real-World Capability
+            </h2>
+            <div className="space-y-6">
+              {capabilities.map((cap, i) => (
+                <div key={i} className="p-6 bg-white border border-[#E5E5DF] rounded-sm">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="font-bold text-[#1A1A1A]">{cap.task?.name}</h3>
+                    <span className={`pill ${
+                      cap.successLevel === 'Full' || cap.successLevel === 'Superhuman' ? 'pill-success' :
+                      cap.successLevel === 'Partial' ? 'pill-warning' : 'pill-danger'
+                    }`}>
+                      {cap.successLevel}
+                    </span>
                   </div>
+                  <p className="text-[#4A4A4A] text-sm leading-relaxed mb-4">
+                    {cap.notes}
+                  </p>
                   
-                  <div className="flex-1 space-y-4">
-                    <div>
-                      <div className="flex justify-between text-xs mb-1.5">
-                        <span className="text-slate-400">Task Coverage</span>
-                        <span className="text-white font-mono">{robot.taskCoverage}%</span>
-                      </div>
-                      <div className="h-2 bg-slate-800 rounded-full overflow-hidden">
-                        <div className="h-full bg-cyan-500" style={{ width: `${robot.taskCoverage}%` }} />
+                  {/* Evidence Links */}
+                  {cap.evidenceIds.length > 0 && (
+                    <div className="pt-4 border-t border-[#E5E5DF]">
+                      <div className="text-[10px] font-mono font-bold uppercase tracking-widest text-[#8E8E8E] mb-2">Evidence</div>
+                      <div className="flex flex-col gap-2">
+                        {cap.evidenceIds.map(eId => {
+                          const ev = robot.evidence.find(e => e.id === eId);
+                          if (!ev) return null;
+                          return (
+                            <a key={eId} href={ev.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm text-[#D97757] hover:underline">
+                              <ExternalLink className="w-3 h-3" />
+                              {ev.title}
+                              {ev.verified && <span className="text-[10px] bg-[#E6F4EA] text-[#137333] px-1.5 py-0.5 rounded-sm ml-2 no-underline">Verified {ev.deploymentType}</span>}
+                            </a>
+                          );
+                        })}
                       </div>
                     </div>
-                    <div className="p-3 rounded-xl bg-slate-900 border border-slate-800">
-                      <div className="text-[10px] text-slate-500 uppercase font-bold mb-1">Human Supervision</div>
-                      <div className="text-sm font-bold text-white">{robot.deploymentCount || 'N/A'}</div>
-                    </div>
-                  </div>
+                  )}
                 </div>
+              ))}
+            </div>
+          </section>
 
-                <div className="space-y-4">
-                  <div className="flex items-center gap-2 text-amber-400 text-sm font-bold uppercase tracking-wider">
-                    <TrendingUp className="w-4 h-4" />
-                    The SOTA Gap: {100 - robot.autonomyScore}%
-                  </div>
-                  <div className="space-y-3">
-                    {robot.limitations.map((lim, i) => (
-                      <div key={i} className="flex gap-3 p-3 rounded-xl bg-slate-900/50 border border-slate-800 text-sm text-slate-300">
-                        <div className="w-1.5 h-1.5 rounded-full bg-red-500 mt-1.5 shrink-0" />
-                        {lim}
-                      </div>
-                    ))}
-                  </div>
-                </div>
+        </div>
+
+        {/* Right Sidebar: Limitations & Meta */}
+        <div className="space-y-12">
+          <section className="p-6 bg-[#F5F5F0] border border-[#D1D1CA] rounded-sm">
+            <h2 className="text-sm font-mono font-bold uppercase tracking-widest text-[#1A1A1A] mb-6 flex items-center gap-2">
+              <Info className="w-4 h-4" /> Known Limitations
+            </h2>
+            <ul className="space-y-4">
+              {robot.limitations.map((lim, i) => (
+                <li key={i} className="text-sm text-[#4A4A4A] leading-relaxed pb-4 border-b border-[#E5E5DF] last:border-0 last:pb-0">
+                  {lim}
+                </li>
+              ))}
+            </ul>
+          </section>
+
+          <section>
+            <h2 className="text-sm font-mono font-bold uppercase tracking-widest text-[#8E8E8E] mb-4">
+              System Meta
+            </h2>
+            <div className="space-y-3 text-sm text-[#4A4A4A]">
+              <div className="flex justify-between">
+                <span>Pricing Model</span>
+                <span className="font-medium text-[#1A1A1A]">{robot.pricingModel}</span>
               </div>
-
-              <div>
-                <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4 flex items-center gap-2">
-                  <ShieldCheck className="w-4 h-4 text-cyan-500" />
-                  Verification & Sources
-                </h3>
-                <div className="flex flex-wrap gap-2">
-                  {robot.sources.map((source, i) => (
-                    <div key={i} className="px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-xs text-slate-400 flex items-center gap-2">
-                      <ExternalLink className="w-3 h-3" />
-                      {source}
-                    </div>
-                  ))}
-                </div>
+              <div className="flex justify-between">
+                <span>Data Confidence</span>
+                <span className="font-mono text-[#1A1A1A]">
+                  {Math.round(capabilities.reduce((acc, c) => acc + c.confidenceScore, 0) / (capabilities.length || 1))}%
+                </span>
               </div>
             </div>
-          </div>
+          </section>
         </div>
-
-        {/* Modal Footer */}
-        <div className="p-6 border-t border-slate-800 bg-slate-900/30 flex justify-end gap-4">
-          <button 
-            onClick={onClose}
-            className="px-6 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-medium transition-all"
-          >
-            Close
-          </button>
-          <button className="px-6 py-2.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold shadow-lg shadow-cyan-500/20 transition-all">
-            Request Quote
-          </button>
-        </div>
-      </motion.div>
-    </div>
+      </div>
+    </motion.div>
   );
 }
