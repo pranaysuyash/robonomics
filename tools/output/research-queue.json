@@ -1,0 +1,854 @@
+{
+  "generatedAt": "2026-03-24T10:53:41.229Z",
+  "stats": {
+    "robots": 36,
+    "tasks": 39,
+    "providers": 1,
+    "highPriorityTasks": 37
+  },
+  "robots": [
+    {
+      "id": "flippy-2",
+      "name": "Flippy 2",
+      "manufacturer": "Miso Robotics",
+      "availability": "Available"
+    },
+    {
+      "id": "hadrian-x",
+      "name": "Hadrian X",
+      "manufacturer": "FBR",
+      "availability": "Available"
+    },
+    {
+      "id": "dusty-fieldprinter",
+      "name": "FieldPrinter 2",
+      "manufacturer": "Dusty Robotics",
+      "availability": "Available"
+    },
+    {
+      "id": "grid-maintenance-robot",
+      "name": "State Grid Inspection Robot",
+      "manufacturer": "State Grid Corp of China",
+      "availability": "Available"
+    },
+    {
+      "id": "davinci-5",
+      "name": "Da Vinci 5",
+      "manufacturer": "Intuitive Surgical",
+      "availability": "Available"
+    },
+    {
+      "id": "stryker-mako",
+      "name": "Mako SmartRobotics",
+      "manufacturer": "Stryker",
+      "availability": "Available"
+    },
+    {
+      "id": "figure-02",
+      "name": "Figure 02",
+      "manufacturer": "Figure AI",
+      "availability": "Available"
+    },
+    {
+      "id": "agility-digit",
+      "name": "Digit",
+      "manufacturer": "Agility Robotics",
+      "availability": "Available"
+    },
+    {
+      "id": "carbon-robotics-weeder",
+      "name": "LaserWeeder",
+      "manufacturer": "Carbon Robotics",
+      "availability": "Available"
+    },
+    {
+      "id": "monarch-tractor-mkv",
+      "name": "MK-V",
+      "manufacturer": "Monarch Tractor",
+      "availability": "Available"
+    },
+    {
+      "id": "stretch-boston-dynamics",
+      "name": "Stretch",
+      "manufacturer": "Boston Dynamics",
+      "availability": "Available"
+    },
+    {
+      "id": "simbe-tally",
+      "name": "Tally 4.0",
+      "manufacturer": "Simbe Robotics",
+      "availability": "Available"
+    },
+    {
+      "id": "knightscope-k5",
+      "name": "K5",
+      "manufacturer": "Knightscope",
+      "availability": "Available"
+    },
+    {
+      "id": "tesla-optimus",
+      "name": "Optimus Gen 2",
+      "manufacturer": "Tesla",
+      "availability": "Concept"
+    },
+    {
+      "id": "boston-dynamics-atlas",
+      "name": "Electric Atlas",
+      "manufacturer": "Boston Dynamics",
+      "availability": "Pilot"
+    },
+    {
+      "id": "apptronik-apollo",
+      "name": "Apollo",
+      "manufacturer": "Apptronik",
+      "availability": "Available"
+    },
+    {
+      "id": "amazon-astro",
+      "name": "Astro",
+      "manufacturer": "Amazon",
+      "availability": "Available"
+    },
+    {
+      "id": "serve-robotics",
+      "name": "Serve Autonomous Robot",
+      "manufacturer": "Serve Robotics",
+      "availability": "Available"
+    },
+    {
+      "id": "starship-delivery",
+      "name": "Starship Delivery Robot",
+      "manufacturer": "Starship Technologies",
+      "availability": "Available"
+    },
+    {
+      "id": "kiwibot",
+      "name": "Kiwibot 4.0",
+      "manufacturer": "Kiwibot",
+      "availability": "Available"
+    },
+    {
+      "id": "neolix",
+      "name": "Neolix Autonomous Van",
+      "manufacturer": "Neolix",
+      "availability": "Available"
+    },
+    {
+      "id": "doordash-dot",
+      "name": "Dot",
+      "manufacturer": "DoorDash",
+      "availability": "Pilot"
+    },
+    {
+      "id": "brightpick-autopicker",
+      "name": "Autopicker",
+      "manufacturer": "Brightpick",
+      "availability": "Available"
+    },
+    {
+      "id": "galbot-g1",
+      "name": "G1 Mobile Manipulator",
+      "manufacturer": "Galbot",
+      "availability": "Available"
+    },
+    {
+      "id": "fendt-xaver",
+      "name": "Xaver GT",
+      "manufacturer": "Fendt (AGCO)",
+      "availability": "Concept"
+    },
+    {
+      "id": "john-deere-autonomy",
+      "name": "John Deere Autonomy 2.0",
+      "manufacturer": "John Deere",
+      "availability": "Available"
+    },
+    {
+      "id": "geek-robots",
+      "name": "Geek+ AMR",
+      "manufacturer": "Geek+",
+      "availability": "Available"
+    },
+    {
+      "id": "greyorange",
+      "name": "GreyOrange Butler",
+      "manufacturer": "GreyOrange",
+      "availability": "Available"
+    },
+    {
+      "id": "mir-mobile",
+      "name": "MC600 Mobile Manipulator",
+      "manufacturer": "Mobile Industrial Robots (MiR)",
+      "availability": "Available"
+    },
+    {
+      "id": "nuro",
+      "name": "Nuro R3",
+      "manufacturer": "Nuro",
+      "availability": "Available"
+    },
+    {
+      "id": "ecorobotix",
+      "name": "Ecorobotix",
+      "manufacturer": "Ecorobotix",
+      "availability": "Available"
+    },
+    {
+      "id": "saga-robotics",
+      "name": "Thorvald",
+      "manufacturer": "Saga Robotics",
+      "availability": "Available"
+    },
+    {
+      "id": "swarmfarm",
+      "name": "SwarmBot",
+      "manufacturer": "SwarmFarm Robotics",
+      "availability": "Available"
+    },
+    {
+      "id": "dexterity-truck",
+      "name": "Dexterity Mech",
+      "manufacturer": "Dexterity",
+      "availability": "Available"
+    },
+    {
+      "id": "jungheinrich-eac",
+      "name": "EAC 212a",
+      "manufacturer": "Jungheinrich",
+      "availability": "Available"
+    },
+    {
+      "id": "quasi-c2",
+      "name": "Model C2 PartPorter",
+      "manufacturer": "Quasi Robotics",
+      "availability": "Available"
+    }
+  ],
+  "providerPlan": [
+    {
+      "id": "manual",
+      "type": "manual",
+      "enabled": true
+    }
+  ],
+  "tasks": [
+    {
+      "id": "robot-flippy-2",
+      "type": "robot",
+      "priority": "high",
+      "entity": {
+        "id": "flippy-2",
+        "name": "Flippy 2",
+        "manufacturer": "Miso Robotics",
+        "availability": "Available"
+      },
+      "queryHints": [
+        "Flippy 2 Miso Robotics 2025 2026 deployment",
+        "Flippy 2 specs pricing",
+        "Flippy 2 limitations issues"
+      ]
+    },
+    {
+      "id": "robot-hadrian-x",
+      "type": "robot",
+      "priority": "high",
+      "entity": {
+        "id": "hadrian-x",
+        "name": "Hadrian X",
+        "manufacturer": "FBR",
+        "availability": "Available"
+      },
+      "queryHints": [
+        "Hadrian X FBR 2025 2026 deployment",
+        "Hadrian X specs pricing",
+        "Hadrian X limitations issues"
+      ]
+    },
+    {
+      "id": "robot-dusty-fieldprinter",
+      "type": "robot",
+      "priority": "high",
+      "entity": {
+        "id": "dusty-fieldprinter",
+        "name": "FieldPrinter 2",
+        "manufacturer": "Dusty Robotics",
+        "availability": "Available"
+      },
+      "queryHints": [
+        "FieldPrinter 2 Dusty Robotics 2025 2026 deployment",
+        "FieldPrinter 2 specs pricing",
+        "FieldPrinter 2 limitations issues"
+      ]
+    },
+    {
+      "id": "robot-grid-maintenance-robot",
+      "type": "robot",
+      "priority": "high",
+      "entity": {
+        "id": "grid-maintenance-robot",
+        "name": "State Grid Inspection Robot",
+        "manufacturer": "State Grid Corp of China",
+        "availability": "Available"
+      },
+      "queryHints": [
+        "State Grid Inspection Robot State Grid Corp of China 2025 2026 deployment",
+        "State Grid Inspection Robot specs pricing",
+        "State Grid Inspection Robot limitations issues"
+      ]
+    },
+    {
+      "id": "robot-davinci-5",
+      "type": "robot",
+      "priority": "high",
+      "entity": {
+        "id": "davinci-5",
+        "name": "Da Vinci 5",
+        "manufacturer": "Intuitive Surgical",
+        "availability": "Available"
+      },
+      "queryHints": [
+        "Da Vinci 5 Intuitive Surgical 2025 2026 deployment",
+        "Da Vinci 5 specs pricing",
+        "Da Vinci 5 limitations issues"
+      ]
+    },
+    {
+      "id": "robot-stryker-mako",
+      "type": "robot",
+      "priority": "high",
+      "entity": {
+        "id": "stryker-mako",
+        "name": "Mako SmartRobotics",
+        "manufacturer": "Stryker",
+        "availability": "Available"
+      },
+      "queryHints": [
+        "Mako SmartRobotics Stryker 2025 2026 deployment",
+        "Mako SmartRobotics specs pricing",
+        "Mako SmartRobotics limitations issues"
+      ]
+    },
+    {
+      "id": "robot-figure-02",
+      "type": "robot",
+      "priority": "high",
+      "entity": {
+        "id": "figure-02",
+        "name": "Figure 02",
+        "manufacturer": "Figure AI",
+        "availability": "Available"
+      },
+      "queryHints": [
+        "Figure 02 Figure AI 2025 2026 deployment",
+        "Figure 02 specs pricing",
+        "Figure 02 limitations issues"
+      ]
+    },
+    {
+      "id": "robot-agility-digit",
+      "type": "robot",
+      "priority": "high",
+      "entity": {
+        "id": "agility-digit",
+        "name": "Digit",
+        "manufacturer": "Agility Robotics",
+        "availability": "Available"
+      },
+      "queryHints": [
+        "Digit Agility Robotics 2025 2026 deployment",
+        "Digit specs pricing",
+        "Digit limitations issues"
+      ]
+    },
+    {
+      "id": "robot-carbon-robotics-weeder",
+      "type": "robot",
+      "priority": "high",
+      "entity": {
+        "id": "carbon-robotics-weeder",
+        "name": "LaserWeeder",
+        "manufacturer": "Carbon Robotics",
+        "availability": "Available"
+      },
+      "queryHints": [
+        "LaserWeeder Carbon Robotics 2025 2026 deployment",
+        "LaserWeeder specs pricing",
+        "LaserWeeder limitations issues"
+      ]
+    },
+    {
+      "id": "robot-monarch-tractor-mkv",
+      "type": "robot",
+      "priority": "high",
+      "entity": {
+        "id": "monarch-tractor-mkv",
+        "name": "MK-V",
+        "manufacturer": "Monarch Tractor",
+        "availability": "Available"
+      },
+      "queryHints": [
+        "MK-V Monarch Tractor 2025 2026 deployment",
+        "MK-V specs pricing",
+        "MK-V limitations issues"
+      ]
+    },
+    {
+      "id": "robot-stretch-boston-dynamics",
+      "type": "robot",
+      "priority": "high",
+      "entity": {
+        "id": "stretch-boston-dynamics",
+        "name": "Stretch",
+        "manufacturer": "Boston Dynamics",
+        "availability": "Available"
+      },
+      "queryHints": [
+        "Stretch Boston Dynamics 2025 2026 deployment",
+        "Stretch specs pricing",
+        "Stretch limitations issues"
+      ]
+    },
+    {
+      "id": "robot-simbe-tally",
+      "type": "robot",
+      "priority": "high",
+      "entity": {
+        "id": "simbe-tally",
+        "name": "Tally 4.0",
+        "manufacturer": "Simbe Robotics",
+        "availability": "Available"
+      },
+      "queryHints": [
+        "Tally 4.0 Simbe Robotics 2025 2026 deployment",
+        "Tally 4.0 specs pricing",
+        "Tally 4.0 limitations issues"
+      ]
+    },
+    {
+      "id": "robot-knightscope-k5",
+      "type": "robot",
+      "priority": "high",
+      "entity": {
+        "id": "knightscope-k5",
+        "name": "K5",
+        "manufacturer": "Knightscope",
+        "availability": "Available"
+      },
+      "queryHints": [
+        "K5 Knightscope 2025 2026 deployment",
+        "K5 specs pricing",
+        "K5 limitations issues"
+      ]
+    },
+    {
+      "id": "robot-tesla-optimus",
+      "type": "robot",
+      "priority": "high",
+      "entity": {
+        "id": "tesla-optimus",
+        "name": "Optimus Gen 2",
+        "manufacturer": "Tesla",
+        "availability": "Concept"
+      },
+      "queryHints": [
+        "Optimus Gen 2 Tesla 2025 2026 deployment",
+        "Optimus Gen 2 specs pricing",
+        "Optimus Gen 2 limitations issues"
+      ]
+    },
+    {
+      "id": "robot-boston-dynamics-atlas",
+      "type": "robot",
+      "priority": "high",
+      "entity": {
+        "id": "boston-dynamics-atlas",
+        "name": "Electric Atlas",
+        "manufacturer": "Boston Dynamics",
+        "availability": "Pilot"
+      },
+      "queryHints": [
+        "Electric Atlas Boston Dynamics 2025 2026 deployment",
+        "Electric Atlas specs pricing",
+        "Electric Atlas limitations issues"
+      ]
+    },
+    {
+      "id": "robot-apptronik-apollo",
+      "type": "robot",
+      "priority": "high",
+      "entity": {
+        "id": "apptronik-apollo",
+        "name": "Apollo",
+        "manufacturer": "Apptronik",
+        "availability": "Available"
+      },
+      "queryHints": [
+        "Apollo Apptronik 2025 2026 deployment",
+        "Apollo specs pricing",
+        "Apollo limitations issues"
+      ]
+    },
+    {
+      "id": "robot-amazon-astro",
+      "type": "robot",
+      "priority": "high",
+      "entity": {
+        "id": "amazon-astro",
+        "name": "Astro",
+        "manufacturer": "Amazon",
+        "availability": "Available"
+      },
+      "queryHints": [
+        "Astro Amazon 2025 2026 deployment",
+        "Astro specs pricing",
+        "Astro limitations issues"
+      ]
+    },
+    {
+      "id": "robot-serve-robotics",
+      "type": "robot",
+      "priority": "high",
+      "entity": {
+        "id": "serve-robotics",
+        "name": "Serve Autonomous Robot",
+        "manufacturer": "Serve Robotics",
+        "availability": "Available"
+      },
+      "queryHints": [
+        "Serve Autonomous Robot Serve Robotics 2025 2026 deployment",
+        "Serve Autonomous Robot specs pricing",
+        "Serve Autonomous Robot limitations issues"
+      ]
+    },
+    {
+      "id": "robot-starship-delivery",
+      "type": "robot",
+      "priority": "high",
+      "entity": {
+        "id": "starship-delivery",
+        "name": "Starship Delivery Robot",
+        "manufacturer": "Starship Technologies",
+        "availability": "Available"
+      },
+      "queryHints": [
+        "Starship Delivery Robot Starship Technologies 2025 2026 deployment",
+        "Starship Delivery Robot specs pricing",
+        "Starship Delivery Robot limitations issues"
+      ]
+    },
+    {
+      "id": "robot-kiwibot",
+      "type": "robot",
+      "priority": "high",
+      "entity": {
+        "id": "kiwibot",
+        "name": "Kiwibot 4.0",
+        "manufacturer": "Kiwibot",
+        "availability": "Available"
+      },
+      "queryHints": [
+        "Kiwibot 4.0 Kiwibot 2025 2026 deployment",
+        "Kiwibot 4.0 specs pricing",
+        "Kiwibot 4.0 limitations issues"
+      ]
+    },
+    {
+      "id": "robot-neolix",
+      "type": "robot",
+      "priority": "high",
+      "entity": {
+        "id": "neolix",
+        "name": "Neolix Autonomous Van",
+        "manufacturer": "Neolix",
+        "availability": "Available"
+      },
+      "queryHints": [
+        "Neolix Autonomous Van Neolix 2025 2026 deployment",
+        "Neolix Autonomous Van specs pricing",
+        "Neolix Autonomous Van limitations issues"
+      ]
+    },
+    {
+      "id": "robot-doordash-dot",
+      "type": "robot",
+      "priority": "high",
+      "entity": {
+        "id": "doordash-dot",
+        "name": "Dot",
+        "manufacturer": "DoorDash",
+        "availability": "Pilot"
+      },
+      "queryHints": [
+        "Dot DoorDash 2025 2026 deployment",
+        "Dot specs pricing",
+        "Dot limitations issues"
+      ]
+    },
+    {
+      "id": "robot-brightpick-autopicker",
+      "type": "robot",
+      "priority": "high",
+      "entity": {
+        "id": "brightpick-autopicker",
+        "name": "Autopicker",
+        "manufacturer": "Brightpick",
+        "availability": "Available"
+      },
+      "queryHints": [
+        "Autopicker Brightpick 2025 2026 deployment",
+        "Autopicker specs pricing",
+        "Autopicker limitations issues"
+      ]
+    },
+    {
+      "id": "robot-galbot-g1",
+      "type": "robot",
+      "priority": "high",
+      "entity": {
+        "id": "galbot-g1",
+        "name": "G1 Mobile Manipulator",
+        "manufacturer": "Galbot",
+        "availability": "Available"
+      },
+      "queryHints": [
+        "G1 Mobile Manipulator Galbot 2025 2026 deployment",
+        "G1 Mobile Manipulator specs pricing",
+        "G1 Mobile Manipulator limitations issues"
+      ]
+    },
+    {
+      "id": "robot-fendt-xaver",
+      "type": "robot",
+      "priority": "high",
+      "entity": {
+        "id": "fendt-xaver",
+        "name": "Xaver GT",
+        "manufacturer": "Fendt (AGCO)",
+        "availability": "Concept"
+      },
+      "queryHints": [
+        "Xaver GT Fendt (AGCO) 2025 2026 deployment",
+        "Xaver GT specs pricing",
+        "Xaver GT limitations issues"
+      ]
+    },
+    {
+      "id": "robot-john-deere-autonomy",
+      "type": "robot",
+      "priority": "high",
+      "entity": {
+        "id": "john-deere-autonomy",
+        "name": "John Deere Autonomy 2.0",
+        "manufacturer": "John Deere",
+        "availability": "Available"
+      },
+      "queryHints": [
+        "John Deere Autonomy 2.0 John Deere 2025 2026 deployment",
+        "John Deere Autonomy 2.0 specs pricing",
+        "John Deere Autonomy 2.0 limitations issues"
+      ]
+    },
+    {
+      "id": "robot-geek-robots",
+      "type": "robot",
+      "priority": "high",
+      "entity": {
+        "id": "geek-robots",
+        "name": "Geek+ AMR",
+        "manufacturer": "Geek+",
+        "availability": "Available"
+      },
+      "queryHints": [
+        "Geek+ AMR Geek+ 2025 2026 deployment",
+        "Geek+ AMR specs pricing",
+        "Geek+ AMR limitations issues"
+      ]
+    },
+    {
+      "id": "robot-greyorange",
+      "type": "robot",
+      "priority": "high",
+      "entity": {
+        "id": "greyorange",
+        "name": "GreyOrange Butler",
+        "manufacturer": "GreyOrange",
+        "availability": "Available"
+      },
+      "queryHints": [
+        "GreyOrange Butler GreyOrange 2025 2026 deployment",
+        "GreyOrange Butler specs pricing",
+        "GreyOrange Butler limitations issues"
+      ]
+    },
+    {
+      "id": "robot-mir-mobile",
+      "type": "robot",
+      "priority": "high",
+      "entity": {
+        "id": "mir-mobile",
+        "name": "MC600 Mobile Manipulator",
+        "manufacturer": "Mobile Industrial Robots (MiR)",
+        "availability": "Available"
+      },
+      "queryHints": [
+        "MC600 Mobile Manipulator Mobile Industrial Robots (MiR) 2025 2026 deployment",
+        "MC600 Mobile Manipulator specs pricing",
+        "MC600 Mobile Manipulator limitations issues"
+      ]
+    },
+    {
+      "id": "robot-nuro",
+      "type": "robot",
+      "priority": "high",
+      "entity": {
+        "id": "nuro",
+        "name": "Nuro R3",
+        "manufacturer": "Nuro",
+        "availability": "Available"
+      },
+      "queryHints": [
+        "Nuro R3 Nuro 2025 2026 deployment",
+        "Nuro R3 specs pricing",
+        "Nuro R3 limitations issues"
+      ]
+    },
+    {
+      "id": "robot-ecorobotix",
+      "type": "robot",
+      "priority": "high",
+      "entity": {
+        "id": "ecorobotix",
+        "name": "Ecorobotix",
+        "manufacturer": "Ecorobotix",
+        "availability": "Available"
+      },
+      "queryHints": [
+        "Ecorobotix Ecorobotix 2025 2026 deployment",
+        "Ecorobotix specs pricing",
+        "Ecorobotix limitations issues"
+      ]
+    },
+    {
+      "id": "robot-saga-robotics",
+      "type": "robot",
+      "priority": "high",
+      "entity": {
+        "id": "saga-robotics",
+        "name": "Thorvald",
+        "manufacturer": "Saga Robotics",
+        "availability": "Available"
+      },
+      "queryHints": [
+        "Thorvald Saga Robotics 2025 2026 deployment",
+        "Thorvald specs pricing",
+        "Thorvald limitations issues"
+      ]
+    },
+    {
+      "id": "robot-swarmfarm",
+      "type": "robot",
+      "priority": "high",
+      "entity": {
+        "id": "swarmfarm",
+        "name": "SwarmBot",
+        "manufacturer": "SwarmFarm Robotics",
+        "availability": "Available"
+      },
+      "queryHints": [
+        "SwarmBot SwarmFarm Robotics 2025 2026 deployment",
+        "SwarmBot specs pricing",
+        "SwarmBot limitations issues"
+      ]
+    },
+    {
+      "id": "robot-dexterity-truck",
+      "type": "robot",
+      "priority": "high",
+      "entity": {
+        "id": "dexterity-truck",
+        "name": "Dexterity Mech",
+        "manufacturer": "Dexterity",
+        "availability": "Available"
+      },
+      "queryHints": [
+        "Dexterity Mech Dexterity 2025 2026 deployment",
+        "Dexterity Mech specs pricing",
+        "Dexterity Mech limitations issues"
+      ]
+    },
+    {
+      "id": "robot-jungheinrich-eac",
+      "type": "robot",
+      "priority": "high",
+      "entity": {
+        "id": "jungheinrich-eac",
+        "name": "EAC 212a",
+        "manufacturer": "Jungheinrich",
+        "availability": "Available"
+      },
+      "queryHints": [
+        "EAC 212a Jungheinrich 2025 2026 deployment",
+        "EAC 212a specs pricing",
+        "EAC 212a limitations issues"
+      ]
+    },
+    {
+      "id": "robot-quasi-c2",
+      "type": "robot",
+      "priority": "high",
+      "entity": {
+        "id": "quasi-c2",
+        "name": "Model C2 PartPorter",
+        "manufacturer": "Quasi Robotics",
+        "availability": "Available"
+      },
+      "queryHints": [
+        "Model C2 PartPorter Quasi Robotics 2025 2026 deployment",
+        "Model C2 PartPorter specs pricing",
+        "Model C2 PartPorter limitations issues"
+      ]
+    },
+    {
+      "id": "topic-new-commercial-robot-deployments",
+      "type": "discovery",
+      "priority": "high",
+      "entity": {
+        "id": "new-commercial-robot-deployments",
+        "name": "New commercial robot deployments"
+      },
+      "queryHints": [
+        "commercial robot deployment 2026",
+        "robotics company announced new robot 2026",
+        "warehouse humanoid deployment pilot production"
+      ]
+    },
+    {
+      "id": "topic-cross-industry-capability-trends",
+      "type": "discovery",
+      "priority": "medium",
+      "entity": {
+        "id": "cross-industry-capability-trends",
+        "name": "Cross-industry capability trends"
+      },
+      "queryHints": [
+        "robotics autonomy trend 2026",
+        "robotics reliability MTBF deployment",
+        "robotics dexterity benchmark industry"
+      ]
+    },
+    {
+      "id": "topic-pricing-and-business-model-changes",
+      "type": "discovery",
+      "priority": "medium",
+      "entity": {
+        "id": "pricing-and-business-model-changes",
+        "name": "Pricing and business model changes"
+      },
+      "queryHints": [
+        "robot as a service pricing update 2026",
+        "robotics subscription contract commercial",
+        "robotics capex pricing industrial"
+      ]
+    }
+  ]
+}

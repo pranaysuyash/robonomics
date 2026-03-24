@@ -1,0 +1,14 @@
+{
+  "generatedAt": "2026-03-24T10:53:41.232Z",
+  "providerResults": [
+    {
+      "provider": "manual",
+      "status": "queued_for_manual_execution",
+      "executedTasks": 0
+    }
+  ],
+  "acceptedCount": 0,
+  "rejectedCount": 0,
+  "accepted": [],
+  "rejected": []
+}
