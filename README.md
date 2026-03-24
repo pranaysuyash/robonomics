@@ -18,3 +18,21 @@ View your app in AI Studio: https://ai.studio/apps/07f6a9c0-c259-43fd-a782-d0a5d
 2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
 3. Run the app:
    `npm run dev`
+
+## Research Pipeline
+
+Run the agentic research orchestrator:
+
+```bash
+npm run research
+```
+
+Manual packet mode:
+
+```bash
+npm run research:manual
+```
+
+Provider configuration and workflow docs:
+
+- [tools/README.md](tools/README.md)

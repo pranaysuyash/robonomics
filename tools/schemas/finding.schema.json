@@ -1,0 +1,50 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ResearchFinding",
+  "type": "object",
+  "required": [
+    "taskId",
+    "entityType",
+    "entityId",
+    "summary",
+    "confidence",
+    "sources",
+    "proposedChanges"
+  ],
+  "properties": {
+    "taskId": { "type": "string" },
+    "entityType": {
+      "type": "string",
+      "enum": ["robot", "industry", "trend", "new_robot"]
+    },
+    "entityId": { "type": "string" },
+    "summary": { "type": "string" },
+    "confidence": { "type": "number", "minimum": 0, "maximum": 1 },
+    "sources": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["url", "title", "publishedAt", "excerpt"],
+        "properties": {
+          "url": { "type": "string" },
+          "title": { "type": "string" },
+          "publishedAt": { "type": "string" },
+          "excerpt": { "type": "string" }
+        }
+      }
+    },
+    "proposedChanges": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["field", "oldValue", "newValue", "reason"],
+        "properties": {
+          "field": { "type": "string" },
+          "oldValue": { "type": ["string", "number", "boolean", "null"] },
+          "newValue": { "type": ["string", "number", "boolean", "null"] },
+          "reason": { "type": "string" }
+        }
+      }
+    }
+  }
+}

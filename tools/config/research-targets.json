@@ -1,0 +1,37 @@
+{
+  "discoveryTopics": [
+    {
+      "name": "New commercial robot deployments",
+      "type": "new_robot",
+      "priority": "high",
+      "objective": "Identify newly announced or newly deployed commercial robots (2025-2026) not already tracked in the dataset.",
+      "queryHints": [
+        "commercial robot deployment 2026",
+        "robotics company announced new robot 2026",
+        "warehouse humanoid deployment pilot production"
+      ]
+    },
+    {
+      "name": "Cross-industry capability trends",
+      "type": "trend",
+      "priority": "medium",
+      "objective": "Identify meaningful capability shifts across industries: autonomy, reliability, dexterity, and deployment scale.",
+      "queryHints": [
+        "robotics autonomy trend 2026",
+        "robotics reliability MTBF deployment",
+        "robotics dexterity benchmark industry"
+      ]
+    },
+    {
+      "name": "Pricing and business model changes",
+      "type": "trend",
+      "priority": "medium",
+      "objective": "Find pricing model changes (RaaS, capex, service contracts) for major commercial robots.",
+      "queryHints": [
+        "robot as a service pricing update 2026",
+        "robotics subscription contract commercial",
+        "robotics capex pricing industrial"
+      ]
+    }
+  ]
+}
