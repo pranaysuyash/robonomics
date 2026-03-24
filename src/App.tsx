@@ -1,27 +1,21 @@
 import { useState, useMemo } from 'react';
 import { 
-  Search, 
   Cpu, 
-  ChevronRight,
-  Info,
   ExternalLink,
   ShieldAlert,
-  CheckCircle2,
-  AlertCircle,
-  HelpCircle,
-  ArrowRight
+  ArrowRight,
+  X
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-import { robots, professions, industries } from './data/robots';
-import { Robot, Industry, Profession, Task, Capability } from './types';
+import { robots } from './data/robots';
+import { Robot } from './types';
 
 export default function App() {
-  const [selectedIndustry, setSelectedIndustry] = useState<Industry | null>(null);
-  const [selectedProfessionId, setSelectedProfessionId] = useState<string | null>(null);
+  const [selectedProfession, setSelectedProfession] = useState<string | null>(null);
   const [selectedRobotId, setSelectedRobotId] = useState<string | null>(null);
 
-  const activeProfession = professions.find(p => p.id === selectedProfessionId);
   const activeRobot = robots.find(r => r.id === selectedRobotId);
+  const industries = useMemo(() => Array.from(new Set(robots.map(r => r.profession))), []);
 
   return (
     <div className="min-h-screen flex text-[#1A1A1A] bg-[#F5F5F0]">
@@ -29,8 +23,7 @@ export default function App() {
       <aside className="w-72 border-r border-[#D1D1CA] p-8 flex flex-col gap-10 overflow-y-auto shrink-0">
         <button 
           onClick={() => {
-            setSelectedIndustry(null);
-            setSelectedProfessionId(null);
+            setSelectedProfession(null);
             setSelectedRobotId(null);
           }}
           className="flex items-center gap-3 hover:opacity-80 transition-opacity text-left"
@@ -43,30 +36,35 @@ export default function App() {
 
         <nav className="space-y-8">
           {industries.map(ind => {
-            const indProfessions = professions.filter(p => p.industry === ind.name);
-            if (indProfessions.length === 0) return null;
+            const indRobots = robots.filter(r => r.profession === ind);
+            if (indRobots.length === 0) return null;
             
             return (
-              <div key={ind.name}>
-                <h3 className="text-[10px] font-mono font-bold uppercase tracking-widest text-[#8E8E8E] mb-4">
-                  {ind.name}
-                </h3>
+              <div key={ind}>
+                <button
+                  onClick={() => {
+                    setSelectedProfession(ind);
+                    setSelectedRobotId(null);
+                  }}
+                  className={`text-[10px] font-mono font-bold uppercase tracking-widest mb-4 hover:text-[#D97757] transition-colors ${selectedProfession === ind && !selectedRobotId ? 'text-[#D97757]' : 'text-[#8E8E8E]'}`}
+                >
+                  {ind}
+                </button>
                 <div className="space-y-2">
-                  {indProfessions.map(p => (
+                  {indRobots.map(r => (
                     <button 
-                      key={p.id}
+                      key={r.id}
                       onClick={() => {
-                        setSelectedIndustry(ind.name);
-                        setSelectedProfessionId(p.id);
-                        setSelectedRobotId(null);
+                        setSelectedProfession(ind);
+                        setSelectedRobotId(r.id);
                       }}
                       className={`block w-full text-left px-3 py-2 text-sm transition-all border-l-2 ${
-                        selectedProfessionId === p.id && !selectedRobotId
+                        selectedRobotId === r.id
                           ? 'border-[#D97757] text-[#1A1A1A] font-medium bg-[#E5E5DF]/30' 
                           : 'border-transparent text-[#4A4A4A] hover:text-[#1A1A1A] hover:bg-[#E5E5DF]/20'
                       }`}
                     >
-                      {p.name}
+                      {r.name}
                     </button>
                   ))}
                 </div>
@@ -85,16 +83,16 @@ export default function App() {
               robot={activeRobot} 
               onBack={() => setSelectedRobotId(null)} 
             />
-          ) : activeProfession ? (
-            <ProfessionView 
-              key="profession" 
-              profession={activeProfession} 
+          ) : selectedProfession ? (
+            <IndustryView 
+              key="industry" 
+              industry={selectedProfession} 
               onSelectRobot={setSelectedRobotId} 
             />
           ) : (
             <HomeView 
               key="home" 
-              onSelectProfession={setSelectedProfessionId} 
+              onSelectIndustry={setSelectedProfession} 
             />
           )}
         </AnimatePresence>
@@ -103,11 +101,10 @@ export default function App() {
   );
 }
 
-function HomeView({ onSelectProfession }: { onSelectProfession: (id: string) => void, key?: string }) {
-  // Calculate global stats
-  const totalTasks = professions.reduce((acc, p) => acc + p.tasks.length, 0);
-  const automatedTasks = robots.flatMap(r => r.capabilities).filter(c => c.successLevel === 'Full' || c.successLevel === 'Superhuman').length;
-  const automationPercentage = Math.round((automatedTasks / (totalTasks || 1)) * 100);
+function HomeView({ onSelectIndustry, key }: { onSelectIndustry: (ind: string) => void, key?: string }) {
+  const industries = Array.from(new Set(robots.map(r => r.profession)));
+  const avgAutonomy = Math.round(robots.reduce((acc, r) => acc + r.autonomyScore, 0) / robots.length);
+  const avgCoverage = Math.round(robots.reduce((acc, r) => acc + r.taskCoverage, 0) / robots.length);
 
   return (
     <motion.div 
@@ -127,18 +124,18 @@ function HomeView({ onSelectProfession }: { onSelectProfession: (id: string) => 
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-12 mb-20">
         <div className="p-8 bg-white border border-[#E5E5DF] rounded-sm">
-          <div className="text-[10px] font-mono font-bold uppercase tracking-widest text-[#8E8E8E] mb-4">Global Task Coverage</div>
-          <div className="text-5xl font-serif font-bold text-[#1A1A1A] mb-2">{automationPercentage}%</div>
-          <p className="text-sm text-[#4A4A4A]">of tracked tasks have a 'Full' or 'Superhuman' robotic solution.</p>
+          <div className="text-[10px] font-mono font-bold uppercase tracking-widest text-[#8E8E8E] mb-4">Average Autonomy</div>
+          <div className="text-5xl font-serif font-bold text-[#1A1A1A] mb-2">{avgAutonomy}%</div>
+          <p className="text-sm text-[#4A4A4A]">average autonomy score across all tracked robotic systems.</p>
         </div>
         <div className="p-8 bg-white border border-[#E5E5DF] rounded-sm">
-          <div className="text-[10px] font-mono font-bold uppercase tracking-widest text-[#8E8E8E] mb-4">Tracked Professions</div>
-          <div className="text-5xl font-serif font-bold text-[#1A1A1A] mb-2">{professions.length}</div>
-          <p className="text-sm text-[#4A4A4A]">jobs analyzed down to their atomic tasks and environmental constraints.</p>
+          <div className="text-[10px] font-mono font-bold uppercase tracking-widest text-[#8E8E8E] mb-4">Average Task Coverage</div>
+          <div className="text-5xl font-serif font-bold text-[#1A1A1A] mb-2">{avgCoverage}%</div>
+          <p className="text-sm text-[#4A4A4A]">average task coverage within their specific sub-professions.</p>
         </div>
         <div className="p-8 bg-white border border-[#E5E5DF] rounded-sm">
-          <div className="text-[10px] font-mono font-bold uppercase tracking-widest text-[#8E8E8E] mb-4">Verified Deployments</div>
-          <div className="text-5xl font-serif font-bold text-[#1A1A1A] mb-2">{robots.reduce((acc, r) => acc + (r.deploymentCount === 'Unknown' ? 0 : parseInt(r.deploymentCount) || 0), 0)}+</div>
+          <div className="text-[10px] font-mono font-bold uppercase tracking-widest text-[#8E8E8E] mb-4">Tracked Systems</div>
+          <div className="text-5xl font-serif font-bold text-[#1A1A1A] mb-2">{robots.length}</div>
           <p className="text-sm text-[#4A4A4A]">robots actively deployed in pilot or production environments.</p>
         </div>
       </div>
@@ -149,23 +146,38 @@ function HomeView({ onSelectProfession }: { onSelectProfession: (id: string) => 
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           {industries.map(ind => {
-            const indProfessions = professions.filter(p => p.industry === ind.name);
-            if (indProfessions.length === 0) return null;
+            const indRobots = robots.filter(r => r.profession === ind);
+            if (indRobots.length === 0) return null;
+
+            const indAvgAutonomy = Math.round(indRobots.reduce((acc, r) => acc + r.autonomyScore, 0) / indRobots.length);
 
             return (
-              <div key={ind.name} className="p-8 border border-[#D1D1CA] bg-[#F5F5F0] hover:bg-white transition-colors rounded-sm group">
-                <h3 className="text-xl font-bold text-[#1A1A1A] mb-3">{ind.name}</h3>
-                <p className="text-sm text-[#4A4A4A] mb-6 leading-relaxed">{ind.description}</p>
+              <div key={ind} className="p-8 border border-[#D1D1CA] bg-[#F5F5F0] hover:bg-white transition-colors rounded-sm group flex flex-col">
+                <h3 className="text-xl font-bold text-[#1A1A1A] mb-3">{ind}</h3>
+                <p className="text-sm text-[#4A4A4A] mb-6 leading-relaxed flex-1">
+                  Currently tracking {indRobots.length} key robotic system{indRobots.length === 1 ? '' : 's'} in this sector. Our analysis indicates an average autonomy score of {indAvgAutonomy}%.
+                </p>
+                
+                <div className="grid grid-cols-2 gap-4 mb-6 p-4 bg-white border border-[#E5E5DF] rounded-sm">
+                  <div>
+                    <div className="text-[10px] font-mono font-bold uppercase tracking-widest text-[#8E8E8E] mb-1">Systems</div>
+                    <div className="text-2xl font-serif font-bold text-[#1A1A1A]">{indRobots.length}</div>
+                  </div>
+                  <div>
+                    <div className="text-[10px] font-mono font-bold uppercase tracking-widest text-[#8E8E8E] mb-1">Avg Autonomy</div>
+                    <div className="text-2xl font-serif font-bold text-[#1A1A1A]">{indAvgAutonomy}%</div>
+                  </div>
+                </div>
                 
                 <div className="space-y-2">
-                  <div className="text-[10px] font-mono font-bold uppercase tracking-widest text-[#8E8E8E] mb-3">Analyzed Professions</div>
-                  {indProfessions.map(p => (
+                  <div className="text-[10px] font-mono font-bold uppercase tracking-widest text-[#8E8E8E] mb-3">Tracked Systems</div>
+                  {indRobots.map(r => (
                     <button 
-                      key={p.id}
-                      onClick={() => onSelectProfession(p.id)}
+                      key={r.id}
+                      onClick={() => onSelectIndustry(ind)}
                       className="flex items-center justify-between w-full p-3 bg-white border border-[#E5E5DF] hover:border-[#D97757] transition-colors rounded-sm text-sm font-medium text-left group-hover:shadow-sm"
                     >
-                      {p.name}
+                      {r.name}
                       <ArrowRight className="w-4 h-4 text-[#8E8E8E] group-hover:text-[#D97757]" />
                     </button>
                   ))}
@@ -179,143 +191,67 @@ function HomeView({ onSelectProfession }: { onSelectProfession: (id: string) => 
   );
 }
 
-function ProfessionView({ profession, onSelectRobot }: { profession: Profession, onSelectRobot: (id: string) => void, key?: string }) {
-  // Calculate overall automation progress based on task difficulty and robot capabilities
-  const getTaskCoverage = (taskId: string) => {
-    const capabilities = robots.flatMap(r => r.capabilities.filter(c => c.taskId === taskId).map(c => ({ robot: r, capability: c })));
-    if (capabilities.length === 0) return { status: 'None', bestRobot: null, confidence: 0 };
-    
-    // Find the best capability
-    const best = capabilities.reduce((prev, current) => {
-      const scoreMap = { 'None': 0, 'Partial': 1, 'Full': 2, 'Superhuman': 3 };
-      if (scoreMap[current.capability.successLevel] > scoreMap[prev.capability.successLevel]) return current;
-      if (scoreMap[current.capability.successLevel] === scoreMap[prev.capability.successLevel] && current.capability.confidenceScore > prev.capability.confidenceScore) return current;
-      return prev;
-    });
-
-    return { status: best.capability.successLevel, bestRobot: best.robot, confidence: best.capability.confidenceScore };
-  };
+function IndustryView({ industry, onSelectRobot, key }: { industry: string, onSelectRobot: (id: string) => void, key?: string }) {
+  const indRobots = robots.filter(r => r.profession === industry);
 
   return (
     <motion.div 
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -10 }}
+      initial={{ opacity: 0, x: 20 }}
+      animate={{ opacity: 1, x: 0 }}
+      exit={{ opacity: 0, x: -20 }}
       className="max-w-5xl mx-auto p-12 lg:p-20"
     >
       <header className="mb-16">
-        <div className="flex items-center gap-3 text-sm font-mono text-[#8E8E8E] mb-6">
-          <span>{profession.industry}</span>
-          <ChevronRight className="w-3 h-3" />
-          <span className="text-[#1A1A1A]">{profession.name}</span>
-        </div>
-        <h1 className="text-5xl font-serif font-bold text-[#1A1A1A] mb-6 leading-tight">
-          {profession.name}
+        <div className="text-[10px] font-mono font-bold uppercase tracking-widest text-[#8E8E8E] mb-4">Industry Overview</div>
+        <h1 className="text-5xl font-serif font-bold text-[#1A1A1A] mb-6">
+          {industry}
         </h1>
-        <p className="text-xl text-[#4A4A4A] max-w-3xl leading-relaxed">
-          {profession.description}
+        <p className="text-xl text-[#4A4A4A] leading-relaxed max-w-3xl">
+          Robotic systems and automation platforms currently deployed or in pilot phases within the {industry} sector.
         </p>
       </header>
 
-      {/* Blockers Section - Prominent */}
-      <section className="mb-20 p-8 bg-[#FCE8E6] border border-[#FAD2CF] rounded-sm">
-        <h2 className="text-sm font-mono font-bold uppercase tracking-widest text-[#C5221F] mb-6 flex items-center gap-2">
-          <ShieldAlert className="w-4 h-4" /> Primary Automation Blockers
-        </h2>
-        <ul className="space-y-4">
-          {profession.blockers.map((blocker, i) => (
-            <li key={i} className="flex gap-4 text-[#1A1A1A]">
-              <div className="w-1.5 h-1.5 rounded-full bg-[#C5221F] mt-2 shrink-0" />
-              <span className="text-lg leading-relaxed">{blocker}</span>
-            </li>
-          ))}
-        </ul>
-      </section>
-
-      {/* Task Breakdown */}
-      <section>
-        <h2 className="text-2xl font-serif font-bold mb-8 border-b border-[#D1D1CA] pb-4">
-          Task-Level Automation Map
-        </h2>
-        <div className="space-y-8">
-          {profession.tasks.map(task => {
-            const coverage = getTaskCoverage(task.id);
-            return (
-              <div key={task.id} className="p-8 border border-[#E5E5DF] bg-white rounded-sm shadow-sm">
-                <div className="flex flex-col lg:flex-row gap-8">
-                  {/* Task Info */}
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-3">
-                      <h3 className="text-xl font-bold text-[#1A1A1A]">{task.name}</h3>
-                      <span className={`text-[10px] font-mono px-2 py-0.5 border rounded-sm ${
-                        task.difficulty === 'Extreme' ? 'border-[#FAD2CF] text-[#C5221F] bg-[#FCE8E6]' :
-                        task.difficulty === 'High' ? 'border-[#FAD2CF] text-[#B06000] bg-[#FEF7E0]' :
-                        'border-[#E5E5DF] text-[#4A4A4A] bg-[#F5F5F0]'
-                      }`}>
-                        {task.difficulty} Difficulty
-                      </span>
-                    </div>
-                    <p className="text-[#4A4A4A] mb-4">{task.description}</p>
-                    <div className="flex flex-wrap gap-2">
-                      {task.environmentConstraints.map(c => (
-                        <span key={c} className="text-xs text-[#8E8E8E] bg-[#F5F5F0] px-2 py-1 rounded-sm">
-                          {c}
-                        </span>
-                      ))}
-                    </div>
+      <div className="space-y-8">
+        {indRobots.map(robot => (
+          <div key={robot.id} className="p-8 bg-white border border-[#E5E5DF] rounded-sm hover:border-[#D1D1CA] transition-colors">
+            <div className="flex flex-col md:flex-row justify-between items-start gap-8">
+              <div className="flex-1">
+                <div className="text-[10px] font-mono font-bold uppercase tracking-widest text-[#D97757] mb-2">{robot.subProfession}</div>
+                <h3 className="text-2xl font-serif font-bold text-[#1A1A1A] mb-2">{robot.name}</h3>
+                <div className="text-sm text-[#8E8E8E] mb-4">by {robot.manufacturer}</div>
+                <p className="text-[#4A4A4A] text-sm leading-relaxed mb-6">{robot.description}</p>
+                
+                <div className="flex gap-4">
+                  <div className="px-3 py-1.5 bg-[#F5F5F0] rounded-sm text-xs font-medium text-[#4A4A4A]">
+                    Autonomy: {robot.autonomyScore}%
                   </div>
-
-                  {/* Automation Status */}
-                  <div className="w-full lg:w-72 border-t lg:border-t-0 lg:border-l border-[#E5E5DF] pt-6 lg:pt-0 lg:pl-8">
-                    <div className="text-[10px] font-mono font-bold uppercase tracking-widest text-[#8E8E8E] mb-3">
-                      Current State of the Art
-                    </div>
-                    
-                    <div className="flex items-center gap-3 mb-4">
-                      {coverage.status === 'Full' || coverage.status === 'Superhuman' ? (
-                        <CheckCircle2 className="w-6 h-6 text-[#137333]" />
-                      ) : coverage.status === 'Partial' ? (
-                        <AlertCircle className="w-6 h-6 text-[#B06000]" />
-                      ) : (
-                        <HelpCircle className="w-6 h-6 text-[#8E8E8E]" />
-                      )}
-                      <span className="text-lg font-bold">
-                        {coverage.status === 'None' ? 'Not Automated' : coverage.status}
-                      </span>
-                    </div>
-
-                    {coverage.bestRobot && (
-                      <div>
-                        <div className="text-xs text-[#4A4A4A] mb-2">Leading Solution:</div>
-                        <button 
-                          onClick={() => onSelectRobot(coverage.bestRobot!.id)}
-                          className="flex items-center justify-between w-full p-3 bg-[#F5F5F0] hover:bg-[#E5E5DF] transition-colors rounded-sm text-sm font-medium border border-[#D1D1CA]"
-                        >
-                          {coverage.bestRobot.name}
-                          <ArrowRight className="w-4 h-4 text-[#8E8E8E]" />
-                        </button>
-                        <div className="mt-2 text-[10px] font-mono text-[#8E8E8E] text-right">
-                          Confidence: {coverage.confidence}%
-                        </div>
-                      </div>
-                    )}
+                  <div className="px-3 py-1.5 bg-[#F5F5F0] rounded-sm text-xs font-medium text-[#4A4A4A]">
+                    Coverage: {robot.taskCoverage}%
+                  </div>
+                  <div className="px-3 py-1.5 bg-[#F5F5F0] rounded-sm text-xs font-medium text-[#4A4A4A]">
+                    Status: {robot.availability}
                   </div>
                 </div>
               </div>
-            );
-          })}
-        </div>
-      </section>
+              
+              <div className="shrink-0">
+                <button 
+                  onClick={() => onSelectRobot(robot.id)}
+                  className="flex items-center gap-2 px-6 py-3 bg-[#1A1A1A] text-white text-sm font-medium rounded-sm hover:bg-[#4A4A4A] transition-colors"
+                >
+                  View Details <ArrowRight className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
     </motion.div>
   );
 }
 
-function RobotView({ robot, onBack }: { robot: Robot, onBack: () => void, key?: string }) {
-  // Find which tasks this robot attempts
-  const capabilities = robot.capabilities.map(c => {
-    const task = professions.flatMap(p => p.tasks).find(t => t.id === c.taskId);
-    return { ...c, task };
-  }).filter(c => c.task);
+function RobotView({ robot, onBack, key }: { robot: Robot, onBack: () => void, key?: string }) {
+  const [showCompareModal, setShowCompareModal] = useState(false);
 
   return (
     <motion.div 
@@ -328,74 +264,73 @@ function RobotView({ robot, onBack }: { robot: Robot, onBack: () => void, key?: 
         onClick={onBack}
         className="flex items-center gap-2 text-sm font-mono text-[#8E8E8E] hover:text-[#1A1A1A] mb-12 transition-colors"
       >
-        <ArrowRight className="w-4 h-4 rotate-180" /> Back to Profession
+        <ArrowRight className="w-4 h-4 rotate-180" /> Back to Industry
       </button>
 
       <header className="mb-16 flex flex-col lg:flex-row justify-between items-start gap-8">
         <div>
+          <div className="text-[10px] font-mono font-bold uppercase tracking-widest text-[#D97757] mb-2">{robot.subProfession}</div>
           <h1 className="text-5xl font-serif font-bold text-[#1A1A1A] mb-4">
             {robot.name}
           </h1>
-          <div className="text-xl text-[#4A4A4A] font-medium">
+          <div className="text-xl text-[#4A4A4A] font-medium mb-6">
             by {robot.manufacturer}
           </div>
+          <button 
+            onClick={() => setShowCompareModal(true)}
+            className="px-4 py-2 bg-[#1A1A1A] text-white text-sm font-medium rounded-sm hover:bg-[#4A4A4A] transition-colors"
+          >
+            Compare Robots
+          </button>
         </div>
         
-        <div className="flex gap-4">
+        <div className="flex gap-4 flex-wrap lg:flex-nowrap">
           <div className="p-4 bg-white border border-[#E5E5DF] rounded-sm min-w-[120px]">
             <div className="text-[10px] font-mono font-bold uppercase tracking-widest text-[#8E8E8E] mb-1">Status</div>
             <div className="font-medium">{robot.availability}</div>
           </div>
           <div className="p-4 bg-white border border-[#E5E5DF] rounded-sm min-w-[120px]">
-            <div className="text-[10px] font-mono font-bold uppercase tracking-widest text-[#8E8E8E] mb-1">Deployments</div>
-            <div className="font-medium">{robot.deploymentCount}</div>
+            <div className="text-[10px] font-mono font-bold uppercase tracking-widest text-[#8E8E8E] mb-1">Pricing</div>
+            <div className="font-medium">{robot.price}</div>
           </div>
         </div>
       </header>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
-        <div className="lg:col-span-2 space-y-16">
+        <div className="lg:col-span-2 space-y-12">
           
-          {/* Real-World Capability vs Claims */}
           <section>
-            <h2 className="text-2xl font-serif font-bold mb-8 border-b border-[#D1D1CA] pb-4">
-              Real-World Capability
+            <h2 className="text-2xl font-serif font-bold mb-6 border-b border-[#D1D1CA] pb-4">
+              Overview
             </h2>
-            <div className="space-y-6">
-              {capabilities.map((cap, i) => (
-                <div key={i} className="p-6 bg-white border border-[#E5E5DF] rounded-sm">
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="font-bold text-[#1A1A1A]">{cap.task?.name}</h3>
-                    <span className={`pill ${
-                      cap.successLevel === 'Full' || cap.successLevel === 'Superhuman' ? 'pill-success' :
-                      cap.successLevel === 'Partial' ? 'pill-warning' : 'pill-danger'
-                    }`}>
-                      {cap.successLevel}
-                    </span>
-                  </div>
-                  <p className="text-[#4A4A4A] text-sm leading-relaxed mb-4">
-                    {cap.notes}
-                  </p>
-                  
-                  {/* Evidence Links */}
-                  {cap.evidenceIds.length > 0 && (
-                    <div className="pt-4 border-t border-[#E5E5DF]">
-                      <div className="text-[10px] font-mono font-bold uppercase tracking-widest text-[#8E8E8E] mb-2">Evidence</div>
-                      <div className="flex flex-col gap-2">
-                        {cap.evidenceIds.map(eId => {
-                          const ev = robot.evidence.find(e => e.id === eId);
-                          if (!ev) return null;
-                          return (
-                            <a key={eId} href={ev.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm text-[#D97757] hover:underline">
-                              <ExternalLink className="w-3 h-3" />
-                              {ev.title}
-                              {ev.verified && <span className="text-[10px] bg-[#E6F4EA] text-[#137333] px-1.5 py-0.5 rounded-sm ml-2 no-underline">Verified {ev.deploymentType}</span>}
-                            </a>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  )}
+            <p className="text-[#4A4A4A] leading-relaxed text-lg">
+              {robot.description}
+            </p>
+          </section>
+
+          {robot.videoUrl && (
+            <section>
+              <div className="aspect-video w-full rounded-sm overflow-hidden border border-[#E5E5DF] bg-black">
+                <iframe 
+                  src={robot.videoUrl} 
+                  title={`${robot.name} demonstration`}
+                  className="w-full h-full"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                  allowFullScreen
+                ></iframe>
+              </div>
+            </section>
+          )}
+
+          <section>
+            <h2 className="text-2xl font-serif font-bold mb-6 border-b border-[#D1D1CA] pb-4">
+              Technical Specifications
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {Object.entries(robot.specs).map(([key, value]) => (
+                <div key={key} className="p-4 bg-white border border-[#E5E5DF] rounded-sm flex flex-col">
+                  <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-[#8E8E8E] mb-1">{key}</span>
+                  <span className="font-medium text-[#1A1A1A]">{value}</span>
                 </div>
               ))}
             </div>
@@ -405,14 +340,18 @@ function RobotView({ robot, onBack }: { robot: Robot, onBack: () => void, key?: 
 
         {/* Right Sidebar: Limitations & Meta */}
         <div className="space-y-12">
-          <section className="p-6 bg-[#F5F5F0] border border-[#D1D1CA] rounded-sm">
-            <h2 className="text-sm font-mono font-bold uppercase tracking-widest text-[#1A1A1A] mb-6 flex items-center gap-2">
-              <Info className="w-4 h-4" /> Known Limitations
+          <GaugeChart score={robot.autonomyScore} label="Autonomy Score" />
+          <GaugeChart score={robot.taskCoverage} label="Task Coverage" color="#1A1A1A" />
+
+          <section className="p-6 bg-[#FCE8E6] border border-[#FAD2CF] rounded-sm">
+            <h2 className="text-sm font-mono font-bold uppercase tracking-widest text-[#C5221F] mb-6 flex items-center gap-2">
+              <ShieldAlert className="w-4 h-4" /> Known Limitations
             </h2>
             <ul className="space-y-4">
               {robot.limitations.map((lim, i) => (
-                <li key={i} className="text-sm text-[#4A4A4A] leading-relaxed pb-4 border-b border-[#E5E5DF] last:border-0 last:pb-0">
-                  {lim}
+                <li key={i} className="text-sm text-[#1A1A1A] leading-relaxed pb-4 border-b border-[#FAD2CF] last:border-0 last:pb-0 flex gap-3">
+                  <div className="w-1.5 h-1.5 rounded-full bg-[#C5221F] mt-1.5 shrink-0" />
+                  <span>{lim}</span>
                 </li>
               ))}
             </ul>
@@ -420,23 +359,187 @@ function RobotView({ robot, onBack }: { robot: Robot, onBack: () => void, key?: 
 
           <section>
             <h2 className="text-sm font-mono font-bold uppercase tracking-widest text-[#8E8E8E] mb-4">
-              System Meta
+              Deployment & Sources
             </h2>
-            <div className="space-y-3 text-sm text-[#4A4A4A]">
-              <div className="flex justify-between">
-                <span>Pricing Model</span>
-                <span className="font-medium text-[#1A1A1A]">{robot.pricingModel}</span>
+            <div className="space-y-4 text-sm text-[#4A4A4A]">
+              <div className="p-4 bg-white border border-[#E5E5DF] rounded-sm">
+                <div className="text-[10px] font-mono font-bold uppercase tracking-widest text-[#8E8E8E] mb-2">Deployments</div>
+                <div className="font-medium text-[#1A1A1A]">{robot.deploymentCount}</div>
               </div>
-              <div className="flex justify-between">
-                <span>Data Confidence</span>
-                <span className="font-mono text-[#1A1A1A]">
-                  {Math.round(capabilities.reduce((acc, c) => acc + c.confidenceScore, 0) / (capabilities.length || 1))}%
-                </span>
+              <div className="p-4 bg-white border border-[#E5E5DF] rounded-sm">
+                <div className="text-[10px] font-mono font-bold uppercase tracking-widest text-[#8E8E8E] mb-2">Sources</div>
+                <ul className="space-y-2">
+                  {robot.sources.map((source, i) => (
+                    <li key={i} className="flex items-start gap-2">
+                      <ExternalLink className="w-3 h-3 mt-1 shrink-0 text-[#D97757]" />
+                      <span>{source}</span>
+                    </li>
+                  ))}
+                </ul>
               </div>
             </div>
           </section>
         </div>
       </div>
+
+      {showCompareModal && (
+        <CompareModal baseRobot={robot} onClose={() => setShowCompareModal(false)} />
+      )}
     </motion.div>
+  );
+}
+
+function GaugeChart({ score, label = "Score", color = "#D97757" }: { score: number, label?: string, color?: string }) {
+  const radius = 40;
+  const circumference = 2 * Math.PI * radius;
+  const strokeDashoffset = circumference - (score / 100) * circumference;
+
+  return (
+    <div className="flex flex-col items-center justify-center p-6 bg-white border border-[#E5E5DF] rounded-sm">
+      <div className="text-[10px] font-mono font-bold uppercase tracking-widest text-[#8E8E8E] mb-4">{label}</div>
+      <div className="relative w-32 h-32 flex items-center justify-center">
+        <svg className="transform -rotate-90 w-full h-full">
+          <circle
+            cx="64"
+            cy="64"
+            r={radius}
+            stroke="#F5F5F0"
+            strokeWidth="12"
+            fill="transparent"
+          />
+          <circle
+            cx="64"
+            cy="64"
+            r={radius}
+            stroke={color}
+            strokeWidth="12"
+            fill="transparent"
+            strokeDasharray={circumference}
+            strokeDashoffset={strokeDashoffset}
+            className="transition-all duration-1000 ease-out"
+          />
+        </svg>
+        <div className="absolute flex flex-col items-center justify-center">
+          <span className="text-3xl font-serif font-bold text-[#1A1A1A]">{score}%</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function CompareModal({ baseRobot, onClose }: { baseRobot: Robot, onClose: () => void }) {
+  const [compareRobotId, setCompareRobotId] = useState<string | null>(null);
+  const compareRobot = robots.find(r => r.id === compareRobotId);
+
+  return (
+    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 lg:p-12">
+      <div className="bg-[#F5F5F0] w-full max-w-6xl max-h-full overflow-y-auto rounded-sm shadow-2xl flex flex-col">
+        <div className="p-6 border-b border-[#D1D1CA] flex justify-between items-center bg-white sticky top-0 z-10">
+          <h2 className="text-2xl font-serif font-bold text-[#1A1A1A]">Compare Robots</h2>
+          <button onClick={onClose} className="p-2 hover:bg-[#F5F5F0] rounded-sm transition-colors">
+            <X className="w-6 h-6 text-[#1A1A1A]" />
+          </button>
+        </div>
+        
+        <div className="p-8 flex-1">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            {/* Base Robot */}
+            <div className="space-y-8">
+              <div className="p-6 bg-white border border-[#E5E5DF] rounded-sm">
+                <div className="text-[10px] font-mono font-bold uppercase tracking-widest text-[#8E8E8E] mb-2">Base Robot</div>
+                <h3 className="text-3xl font-serif font-bold text-[#1A1A1A] mb-2">{baseRobot.name}</h3>
+                <div className="text-sm text-[#4A4A4A]">by {baseRobot.manufacturer}</div>
+                <div className="mt-4 inline-block px-3 py-1 bg-[#F5F5F0] text-xs font-medium rounded-sm">
+                  {baseRobot.profession} • {baseRobot.subProfession}
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-4">
+                <GaugeChart score={baseRobot.autonomyScore} label="Autonomy" />
+                <GaugeChart score={baseRobot.taskCoverage} label="Task Coverage" color="#1A1A1A" />
+              </div>
+
+              <div className="p-6 bg-white border border-[#E5E5DF] rounded-sm">
+                <h4 className="text-sm font-mono font-bold uppercase tracking-widest text-[#1A1A1A] mb-4">Specs</h4>
+                <div className="space-y-3">
+                  {Object.entries(baseRobot.specs).map(([key, value]) => (
+                    <div key={key} className="flex justify-between items-center text-sm border-b border-[#E5E5DF] pb-2 last:border-0 last:pb-0">
+                      <span className="text-[#8E8E8E]">{key}</span>
+                      <span className="font-medium text-right max-w-[60%]">{value}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="p-6 bg-[#FCE8E6] border border-[#FAD2CF] rounded-sm">
+                <h4 className="text-sm font-mono font-bold uppercase tracking-widest text-[#C5221F] mb-4">Limitations</h4>
+                <ul className="space-y-2">
+                  {baseRobot.limitations.map((lim, i) => (
+                    <li key={i} className="text-sm text-[#1A1A1A] flex gap-2">
+                      <div className="w-1.5 h-1.5 rounded-full bg-[#C5221F] mt-1.5 shrink-0" />
+                      <span>{lim}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+
+            {/* Compare Robot */}
+            <div className="space-y-8">
+              <div className="p-6 bg-white border border-[#E5E5DF] rounded-sm">
+                <div className="text-[10px] font-mono font-bold uppercase tracking-widest text-[#8E8E8E] mb-2">Compare With</div>
+                <select 
+                  className="w-full p-3 border border-[#D1D1CA] rounded-sm bg-[#F5F5F0] text-[#1A1A1A] font-medium focus:outline-none focus:border-[#D97757]"
+                  value={compareRobotId || ''}
+                  onChange={(e) => setCompareRobotId(e.target.value)}
+                >
+                  <option value="" disabled>Select a robot to compare...</option>
+                  {robots.filter(r => r.id !== baseRobot.id).map(r => (
+                    <option key={r.id} value={r.id}>{r.name} ({r.manufacturer})</option>
+                  ))}
+                </select>
+              </div>
+
+              {compareRobot ? (
+                <>
+                  <div className="grid grid-cols-2 gap-4">
+                    <GaugeChart score={compareRobot.autonomyScore} label="Autonomy" />
+                    <GaugeChart score={compareRobot.taskCoverage} label="Task Coverage" color="#1A1A1A" />
+                  </div>
+                  
+                  <div className="p-6 bg-white border border-[#E5E5DF] rounded-sm">
+                    <h4 className="text-sm font-mono font-bold uppercase tracking-widest text-[#1A1A1A] mb-4">Specs</h4>
+                    <div className="space-y-3">
+                      {Object.entries(compareRobot.specs).map(([key, value]) => (
+                        <div key={key} className="flex justify-between items-center text-sm border-b border-[#E5E5DF] pb-2 last:border-0 last:pb-0">
+                          <span className="text-[#8E8E8E]">{key}</span>
+                          <span className="font-medium text-right max-w-[60%]">{value}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="p-6 bg-[#FCE8E6] border border-[#FAD2CF] rounded-sm">
+                    <h4 className="text-sm font-mono font-bold uppercase tracking-widest text-[#C5221F] mb-4">Limitations</h4>
+                    <ul className="space-y-2">
+                      {compareRobot.limitations.map((lim, i) => (
+                        <li key={i} className="text-sm text-[#1A1A1A] flex gap-2">
+                          <div className="w-1.5 h-1.5 rounded-full bg-[#C5221F] mt-1.5 shrink-0" />
+                          <span>{lim}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </>
+              ) : (
+                <div className="h-full min-h-[400px] flex items-center justify-center p-12 border-2 border-dashed border-[#D1D1CA] rounded-sm text-[#8E8E8E] text-center">
+                  Select a robot above to see side-by-side comparison.
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }
