@@ -26,6 +26,7 @@ import { appendFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } fr
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { spawnSync } from 'node:child_process';
+import { GoogleGenAI, Type } from "@google/genai";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const PROJECT_ROOT = join(__dirname, '..');
@@ -233,6 +234,7 @@ function buildTasks({ robots, targetsConfig, taskPromptTemplate }) {
         '- Include early signals (pilots, announcements, funding, notable demos) with clear caveats.',
         '- Keep speculative findings low confidence (< 0.6) and avoid hard field-change proposals.',
         '- For broad scan, proposedChanges may be empty when findings are not production-grade.',
+        '- If you discover a NEW robot not in the dataset, add a proposedChange with field="new_robot" and newValue as an object containing id, name, manufacturer, pricingModel, availability, deploymentCount, and description.',
       ].join('\n'),
   };
 
@@ -376,6 +378,60 @@ async function runProviders({ providerPlan, tasks, findingSchema }) {
         provider: provider.id,
         status: 'queued_for_manual_execution',
         executedTasks: 0,
+      });
+      continue;
+    }
+
+    if (provider.type === 'gemini') {
+      const taskResults = [];
+      const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+      
+      for (const task of tasks) {
+        log(`Running gemini for task: ${task.id}`);
+        try {
+          const promptWithSchema = `${task.prompt}\n\nSchema:\n${JSON.stringify(findingSchema, null, 2)}\n\nReturn a JSON array of findings matching this schema.`;
+          
+          const response = await ai.models.generateContent({
+            model: provider.model || 'gemini-3.1-pro-preview',
+            contents: promptWithSchema,
+            config: {
+              systemInstruction: provider.instruction || 'Perform web research and return JSON findings only.',
+              responseMimeType: 'application/json',
+              tools: [{ googleSearch: {} }],
+              toolConfig: { includeServerSideToolInvocations: true }
+            }
+          });
+          
+          const output = response.text || '';
+          const parsed = parseFindingsOutput(output);
+          
+          taskResults.push({
+            taskId: task.id,
+            ok: parsed.ok,
+            stderr: parsed.ok ? null : 'Failed to parse JSON',
+            parseError: parsed.error,
+          });
+          
+          if (parsed.ok && Array.isArray(parsed.findings)) {
+            findings.push(...parsed.findings);
+          }
+        } catch (err) {
+          log(`Gemini error for task ${task.id}: ${err.message}`);
+          taskResults.push({
+            taskId: task.id,
+            ok: false,
+            stderr: err.message,
+            parseError: err.message,
+          });
+        }
+      }
+      
+      providerResults.push({
+        provider: provider.id,
+        status: 'executed',
+        executedTasks: taskResults.length,
+        successTasks: taskResults.filter((r) => r.ok).length,
+        failedTasks: taskResults.filter((r) => !r.ok).length,
       });
       continue;
     }
@@ -584,11 +640,54 @@ function applySimpleUpdatesToRobotsFile(updates) {
 
   for (const update of updates) {
     attempted += 1;
-    if (update.entityType !== 'robot' || !allowedFields.has(update.field)) {
+    if (typeof update.confidence !== 'number' || update.confidence < MIN_APPLY_CONFIDENCE) {
       skipped += 1;
       continue;
     }
-    if (typeof update.confidence !== 'number' || update.confidence < MIN_APPLY_CONFIDENCE) {
+
+    if (update.entityType === 'new_robot' && update.field === 'new_robot') {
+      const newRobot = update.newValue;
+      if (typeof newRobot !== 'object' || !newRobot.id || !newRobot.name) {
+        skipped += 1;
+        continue;
+      }
+      
+      if (updatedContent.includes(`id: '${newRobot.id}'`)) {
+        skipped += 1;
+        continue;
+      }
+      
+      const robotString = `  {
+    id: '${escapeSingleQuotes(newRobot.id)}',
+    name: '${escapeSingleQuotes(newRobot.name)}',
+    manufacturer: '${escapeSingleQuotes(newRobot.manufacturer || 'Unknown')}',
+    pricingModel: '${escapeSingleQuotes(newRobot.pricingModel || 'Unknown')}',
+    availability: '${escapeSingleQuotes(newRobot.availability || 'Concept')}',
+    deploymentCount: '${escapeSingleQuotes(String(newRobot.deploymentCount || '0'))}',
+    description: '${escapeSingleQuotes(newRobot.description || '')}',
+    capabilities: [],
+    limitations: [],
+    specs: {},
+    evidence: []
+  },`;
+      
+      const robotsStart = updatedContent.indexOf('export const robots');
+      if (robotsStart === -1) {
+        skipped += 1;
+        continue;
+      }
+      
+      const listStart = updatedContent.indexOf('[', robotsStart);
+      if (listStart !== -1) {
+        updatedContent = `${updatedContent.slice(0, listStart + 1)}\n${robotString}${updatedContent.slice(listStart + 1)}`;
+        applied += 1;
+      } else {
+        skipped += 1;
+      }
+      continue;
+    }
+
+    if (update.entityType !== 'robot' || !allowedFields.has(update.field)) {
       skipped += 1;
       continue;
     }

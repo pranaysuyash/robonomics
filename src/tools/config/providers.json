@@ -1,6 +1,13 @@
 {
-  "defaultProviderOrder": ["hermes", "manual"],
+  "defaultProviderOrder": ["gemini", "hermes", "manual"],
   "providers": [
+    {
+      "id": "gemini",
+      "type": "gemini",
+      "enabled": true,
+      "model": "gemini-3.1-pro-preview",
+      "instruction": "Perform web research and return JSON findings only."
+    },
     {
       "id": "hermes",
       "type": "command",

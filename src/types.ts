@@ -35,6 +35,7 @@ export interface Evidence {
   type: 'Video' | 'Paper' | 'News' | 'Company Claim';
   verified: boolean;
   deploymentType: 'Demo' | 'Pilot' | 'Production';
+  geographicLocation?: string;
 }
 
 export interface Capability {

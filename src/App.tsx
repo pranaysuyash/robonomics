@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { 
   Cpu, 
   ExternalLink,
@@ -13,7 +13,9 @@ import {
   PlayCircle,
   FileText,
   Building2,
-  Globe
+  Globe,
+  Home,
+  RefreshCw
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
@@ -36,13 +38,122 @@ export default function App() {
   const [filterManufacturer, setFilterManufacturer] = useState<string>('All');
   
   const [showSubmissionModal, setShowSubmissionModal] = useState(false);
+  const [isResearching, setIsResearching] = useState(false);
+
+  useEffect(() => {
+    const checkStatus = async () => {
+      try {
+        const res = await fetch('/api/research/status');
+        const data = await res.json();
+        if (data.status === 'running') {
+          setIsResearching(true);
+          
+          // Start polling
+          const interval = setInterval(async () => {
+            const statusRes = await fetch('/api/research/status');
+            const statusData = await statusRes.json();
+            
+            if (statusData.status === 'success') {
+              clearInterval(interval);
+              setIsResearching(false);
+              alert('Research job completed successfully. Refreshing data...');
+              window.location.reload();
+            } else if (statusData.status === 'error') {
+              clearInterval(interval);
+              setIsResearching(false);
+              alert('Error running research job: ' + statusData.error);
+            }
+          }, 5000);
+        }
+      } catch (err) {
+        console.error('Failed to check research status', err);
+      }
+    };
+    checkStatus();
+  }, []);
+
+  const handleRunResearch = async () => {
+    if (isResearching) return;
+    setIsResearching(true);
+    try {
+      const res = await fetch('/api/research/run', { method: 'POST' });
+      const data = await res.json();
+      if (!res.ok) {
+        alert(data.error || 'Failed to start research');
+        setIsResearching(false);
+        return;
+      }
+      
+      // Poll for status
+      const interval = setInterval(async () => {
+        const statusRes = await fetch('/api/research/status');
+        const statusData = await statusRes.json();
+        
+        if (statusData.status === 'success') {
+          clearInterval(interval);
+          setIsResearching(false);
+          alert('Research job completed successfully. Refreshing data...');
+          window.location.reload();
+        } else if (statusData.status === 'error') {
+          clearInterval(interval);
+          setIsResearching(false);
+          alert('Error running research job: ' + statusData.error);
+        }
+      }, 5000);
+      
+    } catch (err) {
+      alert('Error starting research job');
+      setIsResearching(false);
+    }
+  };
 
   const activeProfession = professions.find(p => p.id === selectedProfessionId);
   const activeRobot = robots.find(r => r.id === selectedRobotId);
 
-  // Derived data for filters
-  const manufacturers = useMemo(() => ['All', ...Array.from(new Set(robots.map(r => r.manufacturer)))].sort(), []);
-  const availabilities = ['All', 'Available', 'Pilot', 'Concept'];
+  // Derived data for filters with counts
+  const manufacturersWithCounts = useMemo(() => {
+    const relevantRobots = robots.filter(r => {
+      const matchesSearch = r.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                            r.manufacturer.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                            r.description.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesAvailability = filterAvailability === 'All' || r.availability === filterAvailability;
+      return matchesSearch && matchesAvailability;
+    });
+
+    const counts = relevantRobots.reduce((acc, r) => {
+      acc[r.manufacturer] = (acc[r.manufacturer] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>);
+
+    const allManufacturers = Array.from(new Set(robots.map(r => r.manufacturer))).sort();
+
+    return ['All', ...allManufacturers].map(m => ({
+      value: m,
+      label: m === 'All' ? 'All Makers' : `${m} (${counts[m] || 0})`
+    }));
+  }, [searchQuery, filterAvailability]);
+
+  const availabilitiesWithCounts = useMemo(() => {
+    const relevantRobots = robots.filter(r => {
+      const matchesSearch = r.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                            r.manufacturer.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                            r.description.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesManufacturer = filterManufacturer === 'All' || r.manufacturer === filterManufacturer;
+      return matchesSearch && matchesManufacturer;
+    });
+
+    const counts = relevantRobots.reduce((acc, r) => {
+      acc[r.availability] = (acc[r.availability] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>);
+
+    const allAvailabilities = Array.from(new Set(robots.map(r => r.availability))).sort();
+
+    return ['All', ...allAvailabilities].map(a => ({
+      value: a,
+      label: a === 'All' ? 'All Status' : `${a} (${counts[a] || 0})`
+    }));
+  }, [searchQuery, filterManufacturer]);
 
   // Filtered robots for global search/filter view
   const filteredRobots = useMemo(() => {
@@ -55,6 +166,15 @@ export default function App() {
       return matchesSearch && matchesAvailability && matchesManufacturer;
     });
   }, [searchQuery, filterAvailability, filterManufacturer]);
+
+  const filteredProfessions = useMemo(() => {
+    if (!searchQuery) return [];
+    return professions.filter(p => 
+      p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      p.industry.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      p.description.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+  }, [searchQuery]);
 
   const isFiltering = searchQuery !== '' || filterAvailability !== 'All' || filterManufacturer !== 'All';
 
@@ -81,6 +201,27 @@ export default function App() {
         </div>
 
         <div className="flex-1 overflow-y-auto p-8 pt-0 space-y-10">
+          <div className="space-y-1">
+            <button
+              onClick={() => {
+                setSelectedProfessionId(null);
+                setSelectedRobotId(null);
+                setSearchQuery('');
+                setFilterAvailability('All');
+                setFilterManufacturer('All');
+              }}
+              className={cn(
+                "w-full text-left px-3 py-2 text-sm transition-all border-l-2 rounded-r-sm group flex items-center gap-3",
+                !selectedProfessionId && !selectedRobotId && !isFiltering
+                  ? "border-[#D97757] text-[#1A1A1A] font-medium bg-[#E5E5DF]/50" 
+                  : "border-transparent text-[#4A4A4A] hover:text-[#1A1A1A] hover:bg-[#E5E5DF]/30"
+              )}
+            >
+              <Home className="w-4 h-4" />
+              <span>Global Dashboard</span>
+            </button>
+          </div>
+
           {industries.map(ind => {
             const indProfessions = professions.filter(p => p.industry === ind.name);
             if (indProfessions.length === 0) return null;
@@ -140,6 +281,24 @@ export default function App() {
         {/* Top Bar (Search & Filters) */}
         <header className="h-20 border-b border-[#E5E5DF] px-8 lg:px-12 flex items-center justify-between shrink-0 bg-white/80 backdrop-blur-md z-10">
           <div className="flex items-center gap-6 flex-1 max-w-3xl">
+            <button 
+              onClick={() => {
+                setSelectedProfessionId(null);
+                setSelectedRobotId(null);
+                setSearchQuery('');
+                setFilterAvailability('All');
+                setFilterManufacturer('All');
+              }}
+              className={cn(
+                "flex items-center justify-center w-10 h-10 rounded-full transition-colors shrink-0",
+                (selectedProfessionId || selectedRobotId || isFiltering)
+                  ? "hover:bg-[#E5E5DF] text-[#4A4A4A] hover:text-[#1A1A1A]"
+                  : "bg-[#1A1A1A] text-white"
+              )}
+              title="Global Dashboard"
+            >
+              <Home className="w-5 h-5" />
+            </button>
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#8E8E8E]" />
               <input 
@@ -166,7 +325,7 @@ export default function App() {
                 }}
                 className="bg-transparent text-sm font-medium text-[#4A4A4A] outline-none cursor-pointer hover:text-[#1A1A1A]"
               >
-                {availabilities.map(a => <option key={a} value={a}>{a === 'All' ? 'All Status' : a}</option>)}
+                {availabilitiesWithCounts.map(a => <option key={a.value} value={a.value}>{a.label}</option>)}
               </select>
               <span className="text-[#D1D1CA]">|</span>
               <select 
@@ -178,33 +337,35 @@ export default function App() {
                 }}
                 className="bg-transparent text-sm font-medium text-[#4A4A4A] outline-none cursor-pointer hover:text-[#1A1A1A] max-w-[150px] truncate"
               >
-                {manufacturers.map(m => <option key={m} value={m}>{m === 'All' ? 'All Makers' : m}</option>)}
+                {manufacturersWithCounts.map(m => <option key={m.value} value={m.value}>{m.label}</option>)}
               </select>
             </div>
           </div>
 
-          <button 
-            onClick={() => setShowSubmissionModal(true)}
-            className="flex items-center gap-2 px-4 py-2 bg-[#1A1A1A] text-white text-sm font-medium rounded-sm hover:bg-[#D97757] transition-colors shrink-0 ml-6"
-          >
-            <Plus className="w-4 h-4" /> Submit Entry
-          </button>
+          <div className="flex items-center gap-3 shrink-0 ml-6">
+            <button 
+              onClick={handleRunResearch}
+              disabled={isResearching}
+              className={cn(
+                "flex items-center gap-2 px-4 py-2 bg-white border border-[#E5E5DF] text-[#1A1A1A] text-sm font-medium rounded-sm hover:border-[#1A1A1A] transition-colors",
+                isResearching && "opacity-50 cursor-not-allowed"
+              )}
+            >
+              <RefreshCw className={cn("w-4 h-4", isResearching && "animate-spin")} /> 
+              {isResearching ? 'Researching...' : 'Run Research'}
+            </button>
+            <button 
+              onClick={() => setShowSubmissionModal(true)}
+              className="flex items-center gap-2 px-4 py-2 bg-[#1A1A1A] text-white text-sm font-medium rounded-sm hover:bg-[#D97757] transition-colors"
+            >
+              <Plus className="w-4 h-4" /> Submit Entry
+            </button>
+          </div>
         </header>
 
         <div className="flex-1 overflow-y-auto">
           <AnimatePresence mode="wait">
-            {isFiltering ? (
-              <SearchResultsView 
-                key="search"
-                robots={filteredRobots}
-                onSelectRobot={setSelectedRobotId}
-                onClear={() => {
-                  setSearchQuery('');
-                  setFilterAvailability('All');
-                  setFilterManufacturer('All');
-                }}
-              />
-            ) : selectedRobotId && activeRobot ? (
+            {selectedRobotId && activeRobot ? (
               <RobotView 
                 key="robot" 
                 robot={activeRobot} 
@@ -215,11 +376,26 @@ export default function App() {
                 key="profession" 
                 profession={activeProfession} 
                 onSelectRobot={setSelectedRobotId} 
+                onBack={() => setSelectedProfessionId(null)}
+              />
+            ) : isFiltering ? (
+              <SearchResultsView 
+                key="search"
+                robots={filteredRobots}
+                professions={filteredProfessions}
+                onSelectRobot={setSelectedRobotId}
+                onSelectProfession={setSelectedProfessionId}
+                onClear={() => {
+                  setSearchQuery('');
+                  setFilterAvailability('All');
+                  setFilterManufacturer('All');
+                }}
               />
             ) : (
               <HomeView 
                 key="home" 
                 onSelectProfession={setSelectedProfessionId} 
+                onSelectRobot={setSelectedRobotId}
               />
             )}
           </AnimatePresence>
@@ -235,10 +411,26 @@ export default function App() {
 
 // --- Views ---
 
-function HomeView({ onSelectProfession, key }: { onSelectProfession: (id: string) => void, key?: string }) {
+function HomeView({ onSelectProfession, onSelectRobot }: { onSelectProfession: (id: string) => void, onSelectRobot: (id: string) => void, key?: string }) {
   const totalRobots = robots.length;
   const totalProfessions = professions.length;
   const verifiedDeployments = robots.filter(r => r.evidence.some(e => e.verified && e.deploymentType === 'Production')).length;
+
+  const featuredRobots = useMemo(() => {
+    return [...robots].sort((a, b) => {
+      // 1. Prioritize Available
+      if (a.availability === 'Available' && b.availability !== 'Available') return -1;
+      if (a.availability !== 'Available' && b.availability === 'Available') return 1;
+      
+      // 2. Prioritize Production deployments
+      const aProd = a.evidence.some(e => e.verified && e.deploymentType === 'Production') ? 1 : 0;
+      const bProd = b.evidence.some(e => e.verified && e.deploymentType === 'Production') ? 1 : 0;
+      if (aProd !== bProd) return bProd - aProd;
+
+      // 3. Prioritize number of capabilities
+      return b.capabilities.length - a.capabilities.length;
+    }).slice(0, 3);
+  }, []);
 
   return (
     <motion.div 
@@ -273,6 +465,34 @@ function HomeView({ onSelectProfession, key }: { onSelectProfession: (id: string
           <p className="text-sm text-[#4A4A4A]">Systems with verified real-world production evidence.</p>
         </div>
       </div>
+
+      <section className="mb-24">
+        <h2 className="text-2xl font-serif font-bold mb-8 border-b border-[#E5E5DF] pb-4">
+          Featured Systems
+        </h2>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {featuredRobots.map(r => (
+            <button 
+              key={r.id}
+              onClick={() => onSelectRobot(r.id)}
+              className="p-6 bg-white border border-[#E5E5DF] hover:border-[#1A1A1A] transition-colors rounded-sm text-left group flex flex-col h-full"
+            >
+              <div className="flex justify-between items-start mb-4">
+                <div>
+                  <div className="text-[10px] font-mono font-bold uppercase tracking-widest text-[#8E8E8E] mb-1">{r.manufacturer}</div>
+                  <h3 className="text-xl font-bold text-[#1A1A1A] group-hover:text-[#D97757] transition-colors">{r.name}</h3>
+                </div>
+                <AvailabilityBadge status={r.availability} />
+              </div>
+              <p className="text-sm text-[#4A4A4A] line-clamp-2 mb-6 flex-1">{r.description}</p>
+              <div className="flex items-center justify-between text-xs font-mono text-[#8E8E8E] pt-4 border-t border-[#E5E5DF]">
+                <span>{r.pricingModel}</span>
+                <span className="flex items-center gap-1 group-hover:text-[#D97757] transition-colors">View Details <ArrowRight className="w-3 h-3" /></span>
+              </div>
+            </button>
+          ))}
+        </div>
+      </section>
 
       <section>
         <h2 className="text-2xl font-serif font-bold mb-12 border-b border-[#E5E5DF] pb-4">
@@ -318,11 +538,17 @@ function HomeView({ onSelectProfession, key }: { onSelectProfession: (id: string
   );
 }
 
-function ProfessionView({ profession, onSelectRobot, key }: { profession: Profession, onSelectRobot: (id: string) => void, key?: string }) {
+function ProfessionView({ profession, onSelectRobot, onBack }: { profession: Profession, onSelectRobot: (id: string) => void, onBack: () => void, key?: string }) {
   // Find robots that have capabilities for any task in this profession
   const relevantRobots = robots.filter(r => 
     r.capabilities.some(c => profession.tasks.some(t => t.id === c.taskId))
   );
+
+  const automatedTasksCount = profession.tasks.filter(task => {
+    const bestCap = relevantRobots.flatMap(r => r.capabilities).filter(c => c.taskId === task.id).sort((a,b) => b.confidenceScore - a.confidenceScore)[0];
+    return bestCap && (bestCap.successLevel === 'Full' || bestCap.successLevel === 'Superhuman');
+  }).length;
+  const coveragePercent = Math.round((automatedTasksCount / profession.tasks.length) * 100);
 
   return (
     <motion.div 
@@ -331,6 +557,12 @@ function ProfessionView({ profession, onSelectRobot, key }: { profession: Profes
       exit={{ opacity: 0, x: -20 }}
       className="max-w-5xl mx-auto p-12 lg:p-20"
     >
+      <button 
+        onClick={onBack}
+        className="flex items-center gap-2 text-sm font-mono text-[#8E8E8E] hover:text-[#1A1A1A] mb-12 transition-colors"
+      >
+        <ArrowRight className="w-4 h-4 rotate-180" /> Back
+      </button>
       <header className="mb-16">
         <div className="flex items-center gap-3 mb-6">
           <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-[#8E8E8E] bg-[#F5F5F0] px-2 py-1 rounded-sm">
@@ -338,6 +570,9 @@ function ProfessionView({ profession, onSelectRobot, key }: { profession: Profes
           </span>
           <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-[#D97757] bg-[#FCE8E6] px-2 py-1 rounded-sm">
             Impact Score: {profession.futureImpactScore}/100
+          </span>
+          <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-[#1A1A1A] bg-[#E5E5DF] px-2 py-1 rounded-sm">
+            Task Coverage: {coveragePercent}%
           </span>
         </div>
         <h1 className="text-5xl font-serif font-bold text-[#1A1A1A] mb-6">
@@ -469,7 +704,7 @@ function ProfessionView({ profession, onSelectRobot, key }: { profession: Profes
   );
 }
 
-function RobotView({ robot, onBack, key }: { robot: Robot, onBack: () => void, key?: string }) {
+function RobotView({ robot, onBack }: { robot: Robot, onBack: () => void, key?: string }) {
   const [showCompareModal, setShowCompareModal] = useState(false);
 
   // Calculate overall autonomy score based on average confidence of capabilities
@@ -593,6 +828,7 @@ function RobotView({ robot, onBack, key }: { robot: Robot, onBack: () => void, k
                               <div className="flex items-center gap-3">
                                 {ev.verified && <span className="flex items-center gap-1 text-[10px] font-mono text-green-600"><CheckCircle2 className="w-3 h-3" /> Verified</span>}
                                 <span className="text-[10px] font-mono text-[#8E8E8E] bg-[#F5F5F0] px-2 py-1 rounded-sm">{ev.deploymentType}</span>
+                                {ev.geographicLocation && <span className="text-[10px] font-mono text-[#8E8E8E] bg-[#F5F5F0] px-2 py-1 rounded-sm flex items-center gap-1"><Globe className="w-3 h-3" /> {ev.geographicLocation}</span>}
                                 <ExternalLink className="w-3 h-3 text-[#8E8E8E]" />
                               </div>
                             </a>
@@ -653,15 +889,15 @@ function RobotView({ robot, onBack, key }: { robot: Robot, onBack: () => void, k
   );
 }
 
-function SearchResultsView({ robots, onSelectRobot, onClear, key }: { robots: Robot[], onSelectRobot: (id: string) => void, onClear: () => void, key?: string }) {
-  if (robots.length === 0) {
+function SearchResultsView({ robots, professions, onSelectRobot, onSelectProfession, onClear }: { robots: Robot[], professions: Profession[], onSelectRobot: (id: string) => void, onSelectProfession: (id: string) => void, onClear: () => void, key?: string }) {
+  if (robots.length === 0 && professions.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center h-full p-12 text-center">
         <div className="w-16 h-16 bg-[#F5F5F0] rounded-full flex items-center justify-center mb-6">
           <Search className="w-8 h-8 text-[#8E8E8E]" />
         </div>
-        <h2 className="text-2xl font-serif font-bold text-[#1A1A1A] mb-4">No robots found</h2>
-        <p className="text-[#4A4A4A] mb-8 max-w-md">We couldn't find any robotic systems matching your current search and filter criteria.</p>
+        <h2 className="text-2xl font-serif font-bold text-[#1A1A1A] mb-4">No results found</h2>
+        <p className="text-[#4A4A4A] mb-8 max-w-md">We couldn't find any systems or professions matching your current search and filter criteria.</p>
         <button 
           onClick={onClear}
           className="px-6 py-3 bg-[#1A1A1A] text-white text-sm font-medium rounded-sm hover:bg-[#D97757] transition-colors"
@@ -673,32 +909,61 @@ function SearchResultsView({ robots, onSelectRobot, onClear, key }: { robots: Ro
   }
 
   return (
-    <div className="p-12 lg:p-20 max-w-6xl mx-auto">
-      <h2 className="text-2xl font-serif font-bold mb-8 border-b border-[#E5E5DF] pb-4">
-        Search Results ({robots.length})
-      </h2>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {robots.map(r => (
-          <button 
-            key={r.id}
-            onClick={() => onSelectRobot(r.id)}
-            className="p-6 bg-white border border-[#E5E5DF] hover:border-[#1A1A1A] transition-colors rounded-sm text-left group flex flex-col h-full"
-          >
-            <div className="flex justify-between items-start mb-4">
-              <div>
-                <div className="text-[10px] font-mono font-bold uppercase tracking-widest text-[#8E8E8E] mb-1">{r.manufacturer}</div>
-                <h3 className="text-xl font-bold text-[#1A1A1A] group-hover:text-[#D97757] transition-colors">{r.name}</h3>
-              </div>
-              <AvailabilityBadge status={r.availability} />
-            </div>
-            <p className="text-sm text-[#4A4A4A] line-clamp-2 mb-6 flex-1">{r.description}</p>
-            <div className="flex items-center justify-between text-xs font-mono text-[#8E8E8E] pt-4 border-t border-[#E5E5DF]">
-              <span>{r.pricingModel}</span>
-              <span className="flex items-center gap-1 group-hover:text-[#D97757] transition-colors">View Details <ArrowRight className="w-3 h-3" /></span>
-            </div>
-          </button>
-        ))}
-      </div>
+    <div className="p-12 lg:p-20 max-w-6xl mx-auto space-y-16">
+      {professions.length > 0 && (
+        <section>
+          <h2 className="text-2xl font-serif font-bold mb-8 border-b border-[#E5E5DF] pb-4">
+            Professions ({professions.length})
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {professions.map(p => (
+              <button 
+                key={p.id}
+                onClick={() => onSelectProfession(p.id)}
+                className="p-6 bg-white border border-[#E5E5DF] hover:border-[#1A1A1A] transition-colors rounded-sm text-left group flex flex-col h-full"
+              >
+                <div className="text-[10px] font-mono font-bold uppercase tracking-widest text-[#8E8E8E] mb-1">{p.industry}</div>
+                <h3 className="text-xl font-bold text-[#1A1A1A] group-hover:text-[#D97757] transition-colors mb-2">{p.name}</h3>
+                <p className="text-sm text-[#4A4A4A] line-clamp-2 mb-6 flex-1">{p.description}</p>
+                <div className="flex items-center justify-between text-xs font-mono text-[#8E8E8E] pt-4 border-t border-[#E5E5DF]">
+                  <span className="text-[#D97757]">Impact Score: {p.futureImpactScore}</span>
+                  <span className="flex items-center gap-1 group-hover:text-[#D97757] transition-colors">View Analysis <ArrowRight className="w-3 h-3" /></span>
+                </div>
+              </button>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {robots.length > 0 && (
+        <section>
+          <h2 className="text-2xl font-serif font-bold mb-8 border-b border-[#E5E5DF] pb-4">
+            Robotic Systems ({robots.length})
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {robots.map(r => (
+              <button 
+                key={r.id}
+                onClick={() => onSelectRobot(r.id)}
+                className="p-6 bg-white border border-[#E5E5DF] hover:border-[#1A1A1A] transition-colors rounded-sm text-left group flex flex-col h-full"
+              >
+                <div className="flex justify-between items-start mb-4">
+                  <div>
+                    <div className="text-[10px] font-mono font-bold uppercase tracking-widest text-[#8E8E8E] mb-1">{r.manufacturer}</div>
+                    <h3 className="text-xl font-bold text-[#1A1A1A] group-hover:text-[#D97757] transition-colors">{r.name}</h3>
+                  </div>
+                  <AvailabilityBadge status={r.availability} />
+                </div>
+                <p className="text-sm text-[#4A4A4A] line-clamp-2 mb-6 flex-1">{r.description}</p>
+                <div className="flex items-center justify-between text-xs font-mono text-[#8E8E8E] pt-4 border-t border-[#E5E5DF]">
+                  <span>{r.pricingModel}</span>
+                  <span className="flex items-center gap-1 group-hover:text-[#D97757] transition-colors">View Details <ArrowRight className="w-3 h-3" /></span>
+                </div>
+              </button>
+            ))}
+          </div>
+        </section>
+      )}
     </div>
   );
 }
@@ -873,6 +1138,58 @@ function CompareModal({ baseRobot, onClose }: { baseRobot: Robot, onClose: () =>
 
 function SubmissionModal({ onClose }: { onClose: () => void }) {
   const [tab, setTab] = useState<'Robot' | 'Profession'>('Robot');
+  const [isSubmitted, setIsSubmitted] = useState(false);
+
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    
+    const formData = new FormData(e.currentTarget);
+    const data = Object.fromEntries(formData.entries());
+    data.type = tab;
+    
+    try {
+      const res = await fetch('/api/submissions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+      
+      if (res.ok) {
+        setIsSubmitted(true);
+      } else {
+        alert('Failed to submit. Please try again.');
+      }
+    } catch (err) {
+      alert('Error submitting data.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  if (isSubmitted) {
+    return (
+      <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 lg:p-12 backdrop-blur-sm">
+        <div className="bg-white w-full max-w-md rounded-sm shadow-2xl flex flex-col items-center text-center p-12">
+          <div className="w-16 h-16 bg-[#E6F4EA] rounded-full flex items-center justify-center mb-6">
+            <CheckCircle2 className="w-8 h-8 text-[#137333]" />
+          </div>
+          <h2 className="text-2xl font-serif font-bold text-[#1A1A1A] mb-4">Submission Received</h2>
+          <p className="text-[#4A4A4A] mb-8 leading-relaxed">
+            Thank you for contributing to Robonomics. Your submission has been sent to our editorial team for review and verification.
+          </p>
+          <button 
+            onClick={onClose}
+            className="px-8 py-3 bg-[#1A1A1A] text-white text-sm font-medium rounded-sm hover:bg-[#D97757] transition-colors w-full"
+          >
+            Return to Dashboard
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 lg:p-12 backdrop-blur-sm">
@@ -910,58 +1227,60 @@ function SubmissionModal({ onClose }: { onClose: () => void }) {
             </button>
           </div>
 
-          <form className="space-y-6" onSubmit={(e) => { e.preventDefault(); alert('Submission received for editorial review.'); onClose(); }}>
+          <form className="space-y-6" onSubmit={handleSubmit}>
             {tab === 'Robot' ? (
               <>
                 <div>
                   <label className="block text-[10px] font-mono font-bold uppercase tracking-widest text-[#8E8E8E] mb-2">Robot Name</label>
-                  <input type="text" required className="w-full p-3 border border-[#D1D1CA] rounded-sm bg-[#F5F5F0] focus:bg-white focus:border-[#D97757] outline-none" />
+                  <input type="text" name="robotName" required className="w-full p-3 border border-[#D1D1CA] rounded-sm bg-[#F5F5F0] focus:bg-white focus:border-[#D97757] outline-none" />
                 </div>
                 <div>
                   <label className="block text-[10px] font-mono font-bold uppercase tracking-widest text-[#8E8E8E] mb-2">Manufacturer</label>
-                  <input type="text" required className="w-full p-3 border border-[#D1D1CA] rounded-sm bg-[#F5F5F0] focus:bg-white focus:border-[#D97757] outline-none" />
+                  <input type="text" name="manufacturer" required className="w-full p-3 border border-[#D1D1CA] rounded-sm bg-[#F5F5F0] focus:bg-white focus:border-[#D97757] outline-none" />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-[10px] font-mono font-bold uppercase tracking-widest text-[#8E8E8E] mb-2">Pricing Model</label>
-                    <input type="text" placeholder="e.g. RaaS, Purchase" className="w-full p-3 border border-[#D1D1CA] rounded-sm bg-[#F5F5F0] focus:bg-white focus:border-[#D97757] outline-none" />
+                    <input type="text" name="pricingModel" placeholder="e.g. RaaS, Purchase" className="w-full p-3 border border-[#D1D1CA] rounded-sm bg-[#F5F5F0] focus:bg-white focus:border-[#D97757] outline-none" />
                   </div>
                   <div>
                     <label className="block text-[10px] font-mono font-bold uppercase tracking-widest text-[#8E8E8E] mb-2">Availability</label>
-                    <select className="w-full p-3 border border-[#D1D1CA] rounded-sm bg-[#F5F5F0] focus:bg-white focus:border-[#D97757] outline-none">
-                      <option>Concept</option>
-                      <option>Pilot</option>
-                      <option>Available</option>
+                    <select name="availability" className="w-full p-3 border border-[#D1D1CA] rounded-sm bg-[#F5F5F0] focus:bg-white focus:border-[#D97757] outline-none">
+                      <option value="Concept">Concept</option>
+                      <option value="Pilot">Pilot</option>
+                      <option value="Available">Available</option>
                     </select>
                   </div>
                 </div>
                 <div>
                   <label className="block text-[10px] font-mono font-bold uppercase tracking-widest text-[#8E8E8E] mb-2">Evidence URL (Video/Paper)</label>
-                  <input type="url" required className="w-full p-3 border border-[#D1D1CA] rounded-sm bg-[#F5F5F0] focus:bg-white focus:border-[#D97757] outline-none" />
+                  <input type="url" name="evidenceUrl" required className="w-full p-3 border border-[#D1D1CA] rounded-sm bg-[#F5F5F0] focus:bg-white focus:border-[#D97757] outline-none" />
                 </div>
               </>
             ) : (
               <>
                 <div>
                   <label className="block text-[10px] font-mono font-bold uppercase tracking-widest text-[#8E8E8E] mb-2">Profession Name</label>
-                  <input type="text" required className="w-full p-3 border border-[#D1D1CA] rounded-sm bg-[#F5F5F0] focus:bg-white focus:border-[#D97757] outline-none" />
+                  <input type="text" name="professionName" required className="w-full p-3 border border-[#D1D1CA] rounded-sm bg-[#F5F5F0] focus:bg-white focus:border-[#D97757] outline-none" />
                 </div>
                 <div>
                   <label className="block text-[10px] font-mono font-bold uppercase tracking-widest text-[#8E8E8E] mb-2">Industry</label>
-                  <select className="w-full p-3 border border-[#D1D1CA] rounded-sm bg-[#F5F5F0] focus:bg-white focus:border-[#D97757] outline-none">
-                    {industries.map(i => <option key={i.name}>{i.name}</option>)}
+                  <select name="industry" className="w-full p-3 border border-[#D1D1CA] rounded-sm bg-[#F5F5F0] focus:bg-white focus:border-[#D97757] outline-none">
+                    {industries.map(i => <option key={i.name} value={i.name}>{i.name}</option>)}
                   </select>
                 </div>
                 <div>
                   <label className="block text-[10px] font-mono font-bold uppercase tracking-widest text-[#8E8E8E] mb-2">Future Impact Explanation (SOTA Analysis)</label>
-                  <textarea required rows={4} className="w-full p-3 border border-[#D1D1CA] rounded-sm bg-[#F5F5F0] focus:bg-white focus:border-[#D97757] outline-none resize-none" placeholder="Explain the current state of the art and what is blocking full automation..."></textarea>
+                  <textarea name="impactExplanation" required rows={4} className="w-full p-3 border border-[#D1D1CA] rounded-sm bg-[#F5F5F0] focus:bg-white focus:border-[#D97757] outline-none resize-none" placeholder="Explain the current state of the art and what is blocking full automation..."></textarea>
                 </div>
               </>
             )}
             
             <div className="pt-6 border-t border-[#E5E5DF] flex justify-end gap-4">
-              <button type="button" onClick={onClose} className="px-6 py-3 text-sm font-medium text-[#4A4A4A] hover:text-[#1A1A1A]">Cancel</button>
-              <button type="submit" className="px-6 py-3 bg-[#1A1A1A] text-white text-sm font-medium rounded-sm hover:bg-[#D97757] transition-colors">Submit for Review</button>
+              <button type="button" onClick={onClose} disabled={isSubmitting} className="px-6 py-3 text-sm font-medium text-[#4A4A4A] hover:text-[#1A1A1A] disabled:opacity-50">Cancel</button>
+              <button type="submit" disabled={isSubmitting} className="px-6 py-3 bg-[#1A1A1A] text-white text-sm font-medium rounded-sm hover:bg-[#D97757] transition-colors disabled:opacity-50">
+                {isSubmitting ? 'Submitting...' : 'Submit for Review'}
+              </button>
             </div>
           </form>
         </div>

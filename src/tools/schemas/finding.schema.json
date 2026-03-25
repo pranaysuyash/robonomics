@@ -40,8 +40,8 @@
         "required": ["field", "oldValue", "newValue", "reason"],
         "properties": {
           "field": { "type": "string" },
-          "oldValue": { "type": ["string", "number", "boolean", "null"] },
-          "newValue": { "type": ["string", "number", "boolean", "null"] },
+          "oldValue": { "type": ["string", "number", "boolean", "null", "object", "array"] },
+          "newValue": { "type": ["string", "number", "boolean", "null", "object", "array"] },
           "reason": { "type": "string" }
         }
       }
