@@ -1,12 +1,14 @@
 # Robonomics Research Tasks
 
-Generated: 2026-03-24T10:53:41.229Z
-Providers: manual
-Tasks: 39
+Generated: 2026-03-25T11:09:47.091Z
+Providers: hermes, manual
+Tasks: 36
+Expanded topics accepted: 0
 
 ## Output Contract
-Return JSON array of findings matching this schema summary:
-`taskId`, `entityType`, `entityId`, `summary`, `confidence`, `sources[]`, `proposedChanges[]`
+Return a JSON array of findings matching the schema below.
+Each finding must include `action` (`update_entity` or `add_entity`).
+Use `proposedEntity` only for `add_entity` findings.
 
 ## Finding Schema
 ```json
@@ -18,6 +20,7 @@ Return JSON array of findings matching this schema summary:
     "taskId",
     "entityType",
     "entityId",
+    "action",
     "summary",
     "confidence",
     "sources",
@@ -27,12 +30,21 @@ Return JSON array of findings matching this schema summary:
     "taskId": {
       "type": "string"
     },
+    "action": {
+      "type": "string",
+      "enum": [
+        "update_entity",
+        "add_entity"
+      ]
+    },
     "entityType": {
       "type": "string",
       "enum": [
         "robot",
         "industry",
         "trend",
+        "company",
+        "capability",
         "new_robot"
       ]
     },
@@ -108,8 +120,85 @@ Return JSON array of findings matching this schema summary:
           }
         }
       }
+    },
+    "proposedEntity": {
+      "type": "object",
+      "required": [
+        "id",
+        "name",
+        "entityType",
+        "summary"
+      ],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "entityType": {
+          "type": "string",
+          "enum": [
+            "robot",
+            "industry",
+            "trend",
+            "company",
+            "capability",
+            "new_robot"
+          ]
+        },
+        "summary": {
+          "type": "string"
+        },
+        "manufacturer": {
+          "type": "string"
+        },
+        "pricingModel": {
+          "type": "string"
+        },
+        "availability": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": true
     }
-  }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "action": {
+            "const": "add_entity"
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "proposedEntity"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "action": {
+            "const": "update_entity"
+          }
+        }
+      },
+      "then": {
+        "not": {
+          "required": [
+            "proposedEntity"
+          ]
+        }
+      }
+    }
+  ],
+  "additionalProperties": true
 }
 ```
 
@@ -126,7 +215,7 @@ Prompt:
 You are a robotics research agent.
 
 Objective:
-Research updates for robot "Flippy 2" by Miso Robotics on 2026-03-24. Focus on deployments, specs, pricing, capabilities, and limitations.
+Research updates for robot "Flippy 2" by Miso Robotics on 2026-03-25. Focus on deployments, specs, pricing, capabilities, and limitations.
 
 Entity Context:
 - entityType: robot
@@ -142,8 +231,11 @@ Instructions:
 4. Return ONLY JSON (no markdown, no prose outside JSON).
 5. Keep confidence from 0.0 to 1.0.
 6. Add at least 2 sources for non-trivial updates.
-7. If no reliable update exists, still return one finding with summary and an empty `proposedChanges` array.
-8. Prefer sources dated 2025-01-01 or later unless older source is required for historical comparison.
+7. Every finding must include `action`.
+8. Use `action="update_entity"` for changes to an existing robot.
+9. Use `action="add_entity"` for a newly discovered company, capability, trend, or robot candidate and include `proposedEntity`.
+10. If no reliable update exists, still return one review-only finding with summary and an empty `proposedChanges` array.
+11. Prefer sources dated 2025-01-01 or later unless older source is required for historical comparison.
 
 Mode-specific policy:
 - This is a strict production-update task.
@@ -151,6 +243,7 @@ Mode-specific policy:
 - Every proposed change must be directly traceable to cited sources.
 - Prefer primary sources; use secondary sources only as supporting evidence.
 - Do not speculate, infer missing numbers, or generalize from unrelated robots.
+- Return action="update_entity" for known robots only.
 - If evidence conflicts, keep proposedChanges empty and explain conflict in summary.
 
 Output format:
@@ -170,7 +263,7 @@ Prompt:
 You are a robotics research agent.
 
 Objective:
-Research updates for robot "Hadrian X" by FBR on 2026-03-24. Focus on deployments, specs, pricing, capabilities, and limitations.
+Research updates for robot "Hadrian X" by FBR on 2026-03-25. Focus on deployments, specs, pricing, capabilities, and limitations.
 
 Entity Context:
 - entityType: robot
@@ -186,8 +279,11 @@ Instructions:
 4. Return ONLY JSON (no markdown, no prose outside JSON).
 5. Keep confidence from 0.0 to 1.0.
 6. Add at least 2 sources for non-trivial updates.
-7. If no reliable update exists, still return one finding with summary and an empty `proposedChanges` array.
-8. Prefer sources dated 2025-01-01 or later unless older source is required for historical comparison.
+7. Every finding must include `action`.
+8. Use `action="update_entity"` for changes to an existing robot.
+9. Use `action="add_entity"` for a newly discovered company, capability, trend, or robot candidate and include `proposedEntity`.
+10. If no reliable update exists, still return one review-only finding with summary and an empty `proposedChanges` array.
+11. Prefer sources dated 2025-01-01 or later unless older source is required for historical comparison.
 
 Mode-specific policy:
 - This is a strict production-update task.
@@ -195,6 +291,7 @@ Mode-specific policy:
 - Every proposed change must be directly traceable to cited sources.
 - Prefer primary sources; use secondary sources only as supporting evidence.
 - Do not speculate, infer missing numbers, or generalize from unrelated robots.
+- Return action="update_entity" for known robots only.
 - If evidence conflicts, keep proposedChanges empty and explain conflict in summary.
 
 Output format:
@@ -214,7 +311,7 @@ Prompt:
 You are a robotics research agent.
 
 Objective:
-Research updates for robot "FieldPrinter 2" by Dusty Robotics on 2026-03-24. Focus on deployments, specs, pricing, capabilities, and limitations.
+Research updates for robot "FieldPrinter 2" by Dusty Robotics on 2026-03-25. Focus on deployments, specs, pricing, capabilities, and limitations.
 
 Entity Context:
 - entityType: robot
@@ -230,8 +327,11 @@ Instructions:
 4. Return ONLY JSON (no markdown, no prose outside JSON).
 5. Keep confidence from 0.0 to 1.0.
 6. Add at least 2 sources for non-trivial updates.
-7. If no reliable update exists, still return one finding with summary and an empty `proposedChanges` array.
-8. Prefer sources dated 2025-01-01 or later unless older source is required for historical comparison.
+7. Every finding must include `action`.
+8. Use `action="update_entity"` for changes to an existing robot.
+9. Use `action="add_entity"` for a newly discovered company, capability, trend, or robot candidate and include `proposedEntity`.
+10. If no reliable update exists, still return one review-only finding with summary and an empty `proposedChanges` array.
+11. Prefer sources dated 2025-01-01 or later unless older source is required for historical comparison.
 
 Mode-specific policy:
 - This is a strict production-update task.
@@ -239,6 +339,7 @@ Mode-specific policy:
 - Every proposed change must be directly traceable to cited sources.
 - Prefer primary sources; use secondary sources only as supporting evidence.
 - Do not speculate, infer missing numbers, or generalize from unrelated robots.
+- Return action="update_entity" for known robots only.
 - If evidence conflicts, keep proposedChanges empty and explain conflict in summary.
 
 Output format:
@@ -258,7 +359,7 @@ Prompt:
 You are a robotics research agent.
 
 Objective:
-Research updates for robot "State Grid Inspection Robot" by State Grid Corp of China on 2026-03-24. Focus on deployments, specs, pricing, capabilities, and limitations.
+Research updates for robot "State Grid Inspection Robot" by State Grid Corp of China on 2026-03-25. Focus on deployments, specs, pricing, capabilities, and limitations.
 
 Entity Context:
 - entityType: robot
@@ -274,8 +375,11 @@ Instructions:
 4. Return ONLY JSON (no markdown, no prose outside JSON).
 5. Keep confidence from 0.0 to 1.0.
 6. Add at least 2 sources for non-trivial updates.
-7. If no reliable update exists, still return one finding with summary and an empty `proposedChanges` array.
-8. Prefer sources dated 2025-01-01 or later unless older source is required for historical comparison.
+7. Every finding must include `action`.
+8. Use `action="update_entity"` for changes to an existing robot.
+9. Use `action="add_entity"` for a newly discovered company, capability, trend, or robot candidate and include `proposedEntity`.
+10. If no reliable update exists, still return one review-only finding with summary and an empty `proposedChanges` array.
+11. Prefer sources dated 2025-01-01 or later unless older source is required for historical comparison.
 
 Mode-specific policy:
 - This is a strict production-update task.
@@ -283,6 +387,7 @@ Mode-specific policy:
 - Every proposed change must be directly traceable to cited sources.
 - Prefer primary sources; use secondary sources only as supporting evidence.
 - Do not speculate, infer missing numbers, or generalize from unrelated robots.
+- Return action="update_entity" for known robots only.
 - If evidence conflicts, keep proposedChanges empty and explain conflict in summary.
 
 Output format:
@@ -302,7 +407,7 @@ Prompt:
 You are a robotics research agent.
 
 Objective:
-Research updates for robot "Da Vinci 5" by Intuitive Surgical on 2026-03-24. Focus on deployments, specs, pricing, capabilities, and limitations.
+Research updates for robot "Da Vinci 5" by Intuitive Surgical on 2026-03-25. Focus on deployments, specs, pricing, capabilities, and limitations.
 
 Entity Context:
 - entityType: robot
@@ -318,8 +423,11 @@ Instructions:
 4. Return ONLY JSON (no markdown, no prose outside JSON).
 5. Keep confidence from 0.0 to 1.0.
 6. Add at least 2 sources for non-trivial updates.
-7. If no reliable update exists, still return one finding with summary and an empty `proposedChanges` array.
-8. Prefer sources dated 2025-01-01 or later unless older source is required for historical comparison.
+7. Every finding must include `action`.
+8. Use `action="update_entity"` for changes to an existing robot.
+9. Use `action="add_entity"` for a newly discovered company, capability, trend, or robot candidate and include `proposedEntity`.
+10. If no reliable update exists, still return one review-only finding with summary and an empty `proposedChanges` array.
+11. Prefer sources dated 2025-01-01 or later unless older source is required for historical comparison.
 
 Mode-specific policy:
 - This is a strict production-update task.
@@ -327,6 +435,7 @@ Mode-specific policy:
 - Every proposed change must be directly traceable to cited sources.
 - Prefer primary sources; use secondary sources only as supporting evidence.
 - Do not speculate, infer missing numbers, or generalize from unrelated robots.
+- Return action="update_entity" for known robots only.
 - If evidence conflicts, keep proposedChanges empty and explain conflict in summary.
 
 Output format:
@@ -346,7 +455,7 @@ Prompt:
 You are a robotics research agent.
 
 Objective:
-Research updates for robot "Mako SmartRobotics" by Stryker on 2026-03-24. Focus on deployments, specs, pricing, capabilities, and limitations.
+Research updates for robot "Mako SmartRobotics" by Stryker on 2026-03-25. Focus on deployments, specs, pricing, capabilities, and limitations.
 
 Entity Context:
 - entityType: robot
@@ -362,8 +471,11 @@ Instructions:
 4. Return ONLY JSON (no markdown, no prose outside JSON).
 5. Keep confidence from 0.0 to 1.0.
 6. Add at least 2 sources for non-trivial updates.
-7. If no reliable update exists, still return one finding with summary and an empty `proposedChanges` array.
-8. Prefer sources dated 2025-01-01 or later unless older source is required for historical comparison.
+7. Every finding must include `action`.
+8. Use `action="update_entity"` for changes to an existing robot.
+9. Use `action="add_entity"` for a newly discovered company, capability, trend, or robot candidate and include `proposedEntity`.
+10. If no reliable update exists, still return one review-only finding with summary and an empty `proposedChanges` array.
+11. Prefer sources dated 2025-01-01 or later unless older source is required for historical comparison.
 
 Mode-specific policy:
 - This is a strict production-update task.
@@ -371,6 +483,7 @@ Mode-specific policy:
 - Every proposed change must be directly traceable to cited sources.
 - Prefer primary sources; use secondary sources only as supporting evidence.
 - Do not speculate, infer missing numbers, or generalize from unrelated robots.
+- Return action="update_entity" for known robots only.
 - If evidence conflicts, keep proposedChanges empty and explain conflict in summary.
 
 Output format:
@@ -390,7 +503,7 @@ Prompt:
 You are a robotics research agent.
 
 Objective:
-Research updates for robot "Figure 02" by Figure AI on 2026-03-24. Focus on deployments, specs, pricing, capabilities, and limitations.
+Research updates for robot "Figure 02" by Figure AI on 2026-03-25. Focus on deployments, specs, pricing, capabilities, and limitations.
 
 Entity Context:
 - entityType: robot
@@ -406,8 +519,11 @@ Instructions:
 4. Return ONLY JSON (no markdown, no prose outside JSON).
 5. Keep confidence from 0.0 to 1.0.
 6. Add at least 2 sources for non-trivial updates.
-7. If no reliable update exists, still return one finding with summary and an empty `proposedChanges` array.
-8. Prefer sources dated 2025-01-01 or later unless older source is required for historical comparison.
+7. Every finding must include `action`.
+8. Use `action="update_entity"` for changes to an existing robot.
+9. Use `action="add_entity"` for a newly discovered company, capability, trend, or robot candidate and include `proposedEntity`.
+10. If no reliable update exists, still return one review-only finding with summary and an empty `proposedChanges` array.
+11. Prefer sources dated 2025-01-01 or later unless older source is required for historical comparison.
 
 Mode-specific policy:
 - This is a strict production-update task.
@@ -415,6 +531,7 @@ Mode-specific policy:
 - Every proposed change must be directly traceable to cited sources.
 - Prefer primary sources; use secondary sources only as supporting evidence.
 - Do not speculate, infer missing numbers, or generalize from unrelated robots.
+- Return action="update_entity" for known robots only.
 - If evidence conflicts, keep proposedChanges empty and explain conflict in summary.
 
 Output format:
@@ -434,7 +551,7 @@ Prompt:
 You are a robotics research agent.
 
 Objective:
-Research updates for robot "Digit" by Agility Robotics on 2026-03-24. Focus on deployments, specs, pricing, capabilities, and limitations.
+Research updates for robot "Digit" by Agility Robotics on 2026-03-25. Focus on deployments, specs, pricing, capabilities, and limitations.
 
 Entity Context:
 - entityType: robot
@@ -450,8 +567,11 @@ Instructions:
 4. Return ONLY JSON (no markdown, no prose outside JSON).
 5. Keep confidence from 0.0 to 1.0.
 6. Add at least 2 sources for non-trivial updates.
-7. If no reliable update exists, still return one finding with summary and an empty `proposedChanges` array.
-8. Prefer sources dated 2025-01-01 or later unless older source is required for historical comparison.
+7. Every finding must include `action`.
+8. Use `action="update_entity"` for changes to an existing robot.
+9. Use `action="add_entity"` for a newly discovered company, capability, trend, or robot candidate and include `proposedEntity`.
+10. If no reliable update exists, still return one review-only finding with summary and an empty `proposedChanges` array.
+11. Prefer sources dated 2025-01-01 or later unless older source is required for historical comparison.
 
 Mode-specific policy:
 - This is a strict production-update task.
@@ -459,6 +579,7 @@ Mode-specific policy:
 - Every proposed change must be directly traceable to cited sources.
 - Prefer primary sources; use secondary sources only as supporting evidence.
 - Do not speculate, infer missing numbers, or generalize from unrelated robots.
+- Return action="update_entity" for known robots only.
 - If evidence conflicts, keep proposedChanges empty and explain conflict in summary.
 
 Output format:
@@ -478,7 +599,7 @@ Prompt:
 You are a robotics research agent.
 
 Objective:
-Research updates for robot "LaserWeeder" by Carbon Robotics on 2026-03-24. Focus on deployments, specs, pricing, capabilities, and limitations.
+Research updates for robot "LaserWeeder" by Carbon Robotics on 2026-03-25. Focus on deployments, specs, pricing, capabilities, and limitations.
 
 Entity Context:
 - entityType: robot
@@ -494,8 +615,11 @@ Instructions:
 4. Return ONLY JSON (no markdown, no prose outside JSON).
 5. Keep confidence from 0.0 to 1.0.
 6. Add at least 2 sources for non-trivial updates.
-7. If no reliable update exists, still return one finding with summary and an empty `proposedChanges` array.
-8. Prefer sources dated 2025-01-01 or later unless older source is required for historical comparison.
+7. Every finding must include `action`.
+8. Use `action="update_entity"` for changes to an existing robot.
+9. Use `action="add_entity"` for a newly discovered company, capability, trend, or robot candidate and include `proposedEntity`.
+10. If no reliable update exists, still return one review-only finding with summary and an empty `proposedChanges` array.
+11. Prefer sources dated 2025-01-01 or later unless older source is required for historical comparison.
 
 Mode-specific policy:
 - This is a strict production-update task.
@@ -503,6 +627,7 @@ Mode-specific policy:
 - Every proposed change must be directly traceable to cited sources.
 - Prefer primary sources; use secondary sources only as supporting evidence.
 - Do not speculate, infer missing numbers, or generalize from unrelated robots.
+- Return action="update_entity" for known robots only.
 - If evidence conflicts, keep proposedChanges empty and explain conflict in summary.
 
 Output format:
@@ -522,7 +647,7 @@ Prompt:
 You are a robotics research agent.
 
 Objective:
-Research updates for robot "MK-V" by Monarch Tractor on 2026-03-24. Focus on deployments, specs, pricing, capabilities, and limitations.
+Research updates for robot "MK-V" by Monarch Tractor on 2026-03-25. Focus on deployments, specs, pricing, capabilities, and limitations.
 
 Entity Context:
 - entityType: robot
@@ -538,8 +663,11 @@ Instructions:
 4. Return ONLY JSON (no markdown, no prose outside JSON).
 5. Keep confidence from 0.0 to 1.0.
 6. Add at least 2 sources for non-trivial updates.
-7. If no reliable update exists, still return one finding with summary and an empty `proposedChanges` array.
-8. Prefer sources dated 2025-01-01 or later unless older source is required for historical comparison.
+7. Every finding must include `action`.
+8. Use `action="update_entity"` for changes to an existing robot.
+9. Use `action="add_entity"` for a newly discovered company, capability, trend, or robot candidate and include `proposedEntity`.
+10. If no reliable update exists, still return one review-only finding with summary and an empty `proposedChanges` array.
+11. Prefer sources dated 2025-01-01 or later unless older source is required for historical comparison.
 
 Mode-specific policy:
 - This is a strict production-update task.
@@ -547,6 +675,7 @@ Mode-specific policy:
 - Every proposed change must be directly traceable to cited sources.
 - Prefer primary sources; use secondary sources only as supporting evidence.
 - Do not speculate, infer missing numbers, or generalize from unrelated robots.
+- Return action="update_entity" for known robots only.
 - If evidence conflicts, keep proposedChanges empty and explain conflict in summary.
 
 Output format:
@@ -566,7 +695,7 @@ Prompt:
 You are a robotics research agent.
 
 Objective:
-Research updates for robot "Stretch" by Boston Dynamics on 2026-03-24. Focus on deployments, specs, pricing, capabilities, and limitations.
+Research updates for robot "Stretch" by Boston Dynamics on 2026-03-25. Focus on deployments, specs, pricing, capabilities, and limitations.
 
 Entity Context:
 - entityType: robot
@@ -582,8 +711,11 @@ Instructions:
 4. Return ONLY JSON (no markdown, no prose outside JSON).
 5. Keep confidence from 0.0 to 1.0.
 6. Add at least 2 sources for non-trivial updates.
-7. If no reliable update exists, still return one finding with summary and an empty `proposedChanges` array.
-8. Prefer sources dated 2025-01-01 or later unless older source is required for historical comparison.
+7. Every finding must include `action`.
+8. Use `action="update_entity"` for changes to an existing robot.
+9. Use `action="add_entity"` for a newly discovered company, capability, trend, or robot candidate and include `proposedEntity`.
+10. If no reliable update exists, still return one review-only finding with summary and an empty `proposedChanges` array.
+11. Prefer sources dated 2025-01-01 or later unless older source is required for historical comparison.
 
 Mode-specific policy:
 - This is a strict production-update task.
@@ -591,6 +723,7 @@ Mode-specific policy:
 - Every proposed change must be directly traceable to cited sources.
 - Prefer primary sources; use secondary sources only as supporting evidence.
 - Do not speculate, infer missing numbers, or generalize from unrelated robots.
+- Return action="update_entity" for known robots only.
 - If evidence conflicts, keep proposedChanges empty and explain conflict in summary.
 
 Output format:
@@ -610,7 +743,7 @@ Prompt:
 You are a robotics research agent.
 
 Objective:
-Research updates for robot "Tally 4.0" by Simbe Robotics on 2026-03-24. Focus on deployments, specs, pricing, capabilities, and limitations.
+Research updates for robot "Tally 4.0" by Simbe Robotics on 2026-03-25. Focus on deployments, specs, pricing, capabilities, and limitations.
 
 Entity Context:
 - entityType: robot
@@ -626,8 +759,11 @@ Instructions:
 4. Return ONLY JSON (no markdown, no prose outside JSON).
 5. Keep confidence from 0.0 to 1.0.
 6. Add at least 2 sources for non-trivial updates.
-7. If no reliable update exists, still return one finding with summary and an empty `proposedChanges` array.
-8. Prefer sources dated 2025-01-01 or later unless older source is required for historical comparison.
+7. Every finding must include `action`.
+8. Use `action="update_entity"` for changes to an existing robot.
+9. Use `action="add_entity"` for a newly discovered company, capability, trend, or robot candidate and include `proposedEntity`.
+10. If no reliable update exists, still return one review-only finding with summary and an empty `proposedChanges` array.
+11. Prefer sources dated 2025-01-01 or later unless older source is required for historical comparison.
 
 Mode-specific policy:
 - This is a strict production-update task.
@@ -635,6 +771,7 @@ Mode-specific policy:
 - Every proposed change must be directly traceable to cited sources.
 - Prefer primary sources; use secondary sources only as supporting evidence.
 - Do not speculate, infer missing numbers, or generalize from unrelated robots.
+- Return action="update_entity" for known robots only.
 - If evidence conflicts, keep proposedChanges empty and explain conflict in summary.
 
 Output format:
@@ -654,7 +791,7 @@ Prompt:
 You are a robotics research agent.
 
 Objective:
-Research updates for robot "K5" by Knightscope on 2026-03-24. Focus on deployments, specs, pricing, capabilities, and limitations.
+Research updates for robot "K5" by Knightscope on 2026-03-25. Focus on deployments, specs, pricing, capabilities, and limitations.
 
 Entity Context:
 - entityType: robot
@@ -670,8 +807,11 @@ Instructions:
 4. Return ONLY JSON (no markdown, no prose outside JSON).
 5. Keep confidence from 0.0 to 1.0.
 6. Add at least 2 sources for non-trivial updates.
-7. If no reliable update exists, still return one finding with summary and an empty `proposedChanges` array.
-8. Prefer sources dated 2025-01-01 or later unless older source is required for historical comparison.
+7. Every finding must include `action`.
+8. Use `action="update_entity"` for changes to an existing robot.
+9. Use `action="add_entity"` for a newly discovered company, capability, trend, or robot candidate and include `proposedEntity`.
+10. If no reliable update exists, still return one review-only finding with summary and an empty `proposedChanges` array.
+11. Prefer sources dated 2025-01-01 or later unless older source is required for historical comparison.
 
 Mode-specific policy:
 - This is a strict production-update task.
@@ -679,6 +819,7 @@ Mode-specific policy:
 - Every proposed change must be directly traceable to cited sources.
 - Prefer primary sources; use secondary sources only as supporting evidence.
 - Do not speculate, infer missing numbers, or generalize from unrelated robots.
+- Return action="update_entity" for known robots only.
 - If evidence conflicts, keep proposedChanges empty and explain conflict in summary.
 
 Output format:
@@ -698,7 +839,7 @@ Prompt:
 You are a robotics research agent.
 
 Objective:
-Research updates for robot "Optimus Gen 2" by Tesla on 2026-03-24. Focus on deployments, specs, pricing, capabilities, and limitations.
+Research updates for robot "Optimus Gen 2" by Tesla on 2026-03-25. Focus on deployments, specs, pricing, capabilities, and limitations.
 
 Entity Context:
 - entityType: robot
@@ -714,8 +855,11 @@ Instructions:
 4. Return ONLY JSON (no markdown, no prose outside JSON).
 5. Keep confidence from 0.0 to 1.0.
 6. Add at least 2 sources for non-trivial updates.
-7. If no reliable update exists, still return one finding with summary and an empty `proposedChanges` array.
-8. Prefer sources dated 2025-01-01 or later unless older source is required for historical comparison.
+7. Every finding must include `action`.
+8. Use `action="update_entity"` for changes to an existing robot.
+9. Use `action="add_entity"` for a newly discovered company, capability, trend, or robot candidate and include `proposedEntity`.
+10. If no reliable update exists, still return one review-only finding with summary and an empty `proposedChanges` array.
+11. Prefer sources dated 2025-01-01 or later unless older source is required for historical comparison.
 
 Mode-specific policy:
 - This is a strict production-update task.
@@ -723,6 +867,7 @@ Mode-specific policy:
 - Every proposed change must be directly traceable to cited sources.
 - Prefer primary sources; use secondary sources only as supporting evidence.
 - Do not speculate, infer missing numbers, or generalize from unrelated robots.
+- Return action="update_entity" for known robots only.
 - If evidence conflicts, keep proposedChanges empty and explain conflict in summary.
 
 Output format:
@@ -742,7 +887,7 @@ Prompt:
 You are a robotics research agent.
 
 Objective:
-Research updates for robot "Electric Atlas" by Boston Dynamics on 2026-03-24. Focus on deployments, specs, pricing, capabilities, and limitations.
+Research updates for robot "Electric Atlas" by Boston Dynamics on 2026-03-25. Focus on deployments, specs, pricing, capabilities, and limitations.
 
 Entity Context:
 - entityType: robot
@@ -758,8 +903,11 @@ Instructions:
 4. Return ONLY JSON (no markdown, no prose outside JSON).
 5. Keep confidence from 0.0 to 1.0.
 6. Add at least 2 sources for non-trivial updates.
-7. If no reliable update exists, still return one finding with summary and an empty `proposedChanges` array.
-8. Prefer sources dated 2025-01-01 or later unless older source is required for historical comparison.
+7. Every finding must include `action`.
+8. Use `action="update_entity"` for changes to an existing robot.
+9. Use `action="add_entity"` for a newly discovered company, capability, trend, or robot candidate and include `proposedEntity`.
+10. If no reliable update exists, still return one review-only finding with summary and an empty `proposedChanges` array.
+11. Prefer sources dated 2025-01-01 or later unless older source is required for historical comparison.
 
 Mode-specific policy:
 - This is a strict production-update task.
@@ -767,6 +915,7 @@ Mode-specific policy:
 - Every proposed change must be directly traceable to cited sources.
 - Prefer primary sources; use secondary sources only as supporting evidence.
 - Do not speculate, infer missing numbers, or generalize from unrelated robots.
+- Return action="update_entity" for known robots only.
 - If evidence conflicts, keep proposedChanges empty and explain conflict in summary.
 
 Output format:
@@ -786,7 +935,7 @@ Prompt:
 You are a robotics research agent.
 
 Objective:
-Research updates for robot "Apollo" by Apptronik on 2026-03-24. Focus on deployments, specs, pricing, capabilities, and limitations.
+Research updates for robot "Apollo" by Apptronik on 2026-03-25. Focus on deployments, specs, pricing, capabilities, and limitations.
 
 Entity Context:
 - entityType: robot
@@ -802,8 +951,11 @@ Instructions:
 4. Return ONLY JSON (no markdown, no prose outside JSON).
 5. Keep confidence from 0.0 to 1.0.
 6. Add at least 2 sources for non-trivial updates.
-7. If no reliable update exists, still return one finding with summary and an empty `proposedChanges` array.
-8. Prefer sources dated 2025-01-01 or later unless older source is required for historical comparison.
+7. Every finding must include `action`.
+8. Use `action="update_entity"` for changes to an existing robot.
+9. Use `action="add_entity"` for a newly discovered company, capability, trend, or robot candidate and include `proposedEntity`.
+10. If no reliable update exists, still return one review-only finding with summary and an empty `proposedChanges` array.
+11. Prefer sources dated 2025-01-01 or later unless older source is required for historical comparison.
 
 Mode-specific policy:
 - This is a strict production-update task.
@@ -811,6 +963,7 @@ Mode-specific policy:
 - Every proposed change must be directly traceable to cited sources.
 - Prefer primary sources; use secondary sources only as supporting evidence.
 - Do not speculate, infer missing numbers, or generalize from unrelated robots.
+- Return action="update_entity" for known robots only.
 - If evidence conflicts, keep proposedChanges empty and explain conflict in summary.
 
 Output format:
@@ -830,7 +983,7 @@ Prompt:
 You are a robotics research agent.
 
 Objective:
-Research updates for robot "Astro" by Amazon on 2026-03-24. Focus on deployments, specs, pricing, capabilities, and limitations.
+Research updates for robot "Astro" by Amazon on 2026-03-25. Focus on deployments, specs, pricing, capabilities, and limitations.
 
 Entity Context:
 - entityType: robot
@@ -846,8 +999,11 @@ Instructions:
 4. Return ONLY JSON (no markdown, no prose outside JSON).
 5. Keep confidence from 0.0 to 1.0.
 6. Add at least 2 sources for non-trivial updates.
-7. If no reliable update exists, still return one finding with summary and an empty `proposedChanges` array.
-8. Prefer sources dated 2025-01-01 or later unless older source is required for historical comparison.
+7. Every finding must include `action`.
+8. Use `action="update_entity"` for changes to an existing robot.
+9. Use `action="add_entity"` for a newly discovered company, capability, trend, or robot candidate and include `proposedEntity`.
+10. If no reliable update exists, still return one review-only finding with summary and an empty `proposedChanges` array.
+11. Prefer sources dated 2025-01-01 or later unless older source is required for historical comparison.
 
 Mode-specific policy:
 - This is a strict production-update task.
@@ -855,6 +1011,7 @@ Mode-specific policy:
 - Every proposed change must be directly traceable to cited sources.
 - Prefer primary sources; use secondary sources only as supporting evidence.
 - Do not speculate, infer missing numbers, or generalize from unrelated robots.
+- Return action="update_entity" for known robots only.
 - If evidence conflicts, keep proposedChanges empty and explain conflict in summary.
 
 Output format:
@@ -874,7 +1031,7 @@ Prompt:
 You are a robotics research agent.
 
 Objective:
-Research updates for robot "Serve Autonomous Robot" by Serve Robotics on 2026-03-24. Focus on deployments, specs, pricing, capabilities, and limitations.
+Research updates for robot "Serve Autonomous Robot" by Serve Robotics on 2026-03-25. Focus on deployments, specs, pricing, capabilities, and limitations.
 
 Entity Context:
 - entityType: robot
@@ -890,8 +1047,11 @@ Instructions:
 4. Return ONLY JSON (no markdown, no prose outside JSON).
 5. Keep confidence from 0.0 to 1.0.
 6. Add at least 2 sources for non-trivial updates.
-7. If no reliable update exists, still return one finding with summary and an empty `proposedChanges` array.
-8. Prefer sources dated 2025-01-01 or later unless older source is required for historical comparison.
+7. Every finding must include `action`.
+8. Use `action="update_entity"` for changes to an existing robot.
+9. Use `action="add_entity"` for a newly discovered company, capability, trend, or robot candidate and include `proposedEntity`.
+10. If no reliable update exists, still return one review-only finding with summary and an empty `proposedChanges` array.
+11. Prefer sources dated 2025-01-01 or later unless older source is required for historical comparison.
 
 Mode-specific policy:
 - This is a strict production-update task.
@@ -899,6 +1059,7 @@ Mode-specific policy:
 - Every proposed change must be directly traceable to cited sources.
 - Prefer primary sources; use secondary sources only as supporting evidence.
 - Do not speculate, infer missing numbers, or generalize from unrelated robots.
+- Return action="update_entity" for known robots only.
 - If evidence conflicts, keep proposedChanges empty and explain conflict in summary.
 
 Output format:
@@ -918,7 +1079,7 @@ Prompt:
 You are a robotics research agent.
 
 Objective:
-Research updates for robot "Starship Delivery Robot" by Starship Technologies on 2026-03-24. Focus on deployments, specs, pricing, capabilities, and limitations.
+Research updates for robot "Starship Delivery Robot" by Starship Technologies on 2026-03-25. Focus on deployments, specs, pricing, capabilities, and limitations.
 
 Entity Context:
 - entityType: robot
@@ -934,8 +1095,11 @@ Instructions:
 4. Return ONLY JSON (no markdown, no prose outside JSON).
 5. Keep confidence from 0.0 to 1.0.
 6. Add at least 2 sources for non-trivial updates.
-7. If no reliable update exists, still return one finding with summary and an empty `proposedChanges` array.
-8. Prefer sources dated 2025-01-01 or later unless older source is required for historical comparison.
+7. Every finding must include `action`.
+8. Use `action="update_entity"` for changes to an existing robot.
+9. Use `action="add_entity"` for a newly discovered company, capability, trend, or robot candidate and include `proposedEntity`.
+10. If no reliable update exists, still return one review-only finding with summary and an empty `proposedChanges` array.
+11. Prefer sources dated 2025-01-01 or later unless older source is required for historical comparison.
 
 Mode-specific policy:
 - This is a strict production-update task.
@@ -943,6 +1107,7 @@ Mode-specific policy:
 - Every proposed change must be directly traceable to cited sources.
 - Prefer primary sources; use secondary sources only as supporting evidence.
 - Do not speculate, infer missing numbers, or generalize from unrelated robots.
+- Return action="update_entity" for known robots only.
 - If evidence conflicts, keep proposedChanges empty and explain conflict in summary.
 
 Output format:
@@ -962,7 +1127,7 @@ Prompt:
 You are a robotics research agent.
 
 Objective:
-Research updates for robot "Kiwibot 4.0" by Kiwibot on 2026-03-24. Focus on deployments, specs, pricing, capabilities, and limitations.
+Research updates for robot "Kiwibot 4.0" by Kiwibot on 2026-03-25. Focus on deployments, specs, pricing, capabilities, and limitations.
 
 Entity Context:
 - entityType: robot
@@ -978,8 +1143,11 @@ Instructions:
 4. Return ONLY JSON (no markdown, no prose outside JSON).
 5. Keep confidence from 0.0 to 1.0.
 6. Add at least 2 sources for non-trivial updates.
-7. If no reliable update exists, still return one finding with summary and an empty `proposedChanges` array.
-8. Prefer sources dated 2025-01-01 or later unless older source is required for historical comparison.
+7. Every finding must include `action`.
+8. Use `action="update_entity"` for changes to an existing robot.
+9. Use `action="add_entity"` for a newly discovered company, capability, trend, or robot candidate and include `proposedEntity`.
+10. If no reliable update exists, still return one review-only finding with summary and an empty `proposedChanges` array.
+11. Prefer sources dated 2025-01-01 or later unless older source is required for historical comparison.
 
 Mode-specific policy:
 - This is a strict production-update task.
@@ -987,6 +1155,7 @@ Mode-specific policy:
 - Every proposed change must be directly traceable to cited sources.
 - Prefer primary sources; use secondary sources only as supporting evidence.
 - Do not speculate, infer missing numbers, or generalize from unrelated robots.
+- Return action="update_entity" for known robots only.
 - If evidence conflicts, keep proposedChanges empty and explain conflict in summary.
 
 Output format:
@@ -1006,7 +1175,7 @@ Prompt:
 You are a robotics research agent.
 
 Objective:
-Research updates for robot "Neolix Autonomous Van" by Neolix on 2026-03-24. Focus on deployments, specs, pricing, capabilities, and limitations.
+Research updates for robot "Neolix Autonomous Van" by Neolix on 2026-03-25. Focus on deployments, specs, pricing, capabilities, and limitations.
 
 Entity Context:
 - entityType: robot
@@ -1022,8 +1191,11 @@ Instructions:
 4. Return ONLY JSON (no markdown, no prose outside JSON).
 5. Keep confidence from 0.0 to 1.0.
 6. Add at least 2 sources for non-trivial updates.
-7. If no reliable update exists, still return one finding with summary and an empty `proposedChanges` array.
-8. Prefer sources dated 2025-01-01 or later unless older source is required for historical comparison.
+7. Every finding must include `action`.
+8. Use `action="update_entity"` for changes to an existing robot.
+9. Use `action="add_entity"` for a newly discovered company, capability, trend, or robot candidate and include `proposedEntity`.
+10. If no reliable update exists, still return one review-only finding with summary and an empty `proposedChanges` array.
+11. Prefer sources dated 2025-01-01 or later unless older source is required for historical comparison.
 
 Mode-specific policy:
 - This is a strict production-update task.
@@ -1031,6 +1203,7 @@ Mode-specific policy:
 - Every proposed change must be directly traceable to cited sources.
 - Prefer primary sources; use secondary sources only as supporting evidence.
 - Do not speculate, infer missing numbers, or generalize from unrelated robots.
+- Return action="update_entity" for known robots only.
 - If evidence conflicts, keep proposedChanges empty and explain conflict in summary.
 
 Output format:
@@ -1050,7 +1223,7 @@ Prompt:
 You are a robotics research agent.
 
 Objective:
-Research updates for robot "Dot" by DoorDash on 2026-03-24. Focus on deployments, specs, pricing, capabilities, and limitations.
+Research updates for robot "Dot" by DoorDash on 2026-03-25. Focus on deployments, specs, pricing, capabilities, and limitations.
 
 Entity Context:
 - entityType: robot
@@ -1066,8 +1239,11 @@ Instructions:
 4. Return ONLY JSON (no markdown, no prose outside JSON).
 5. Keep confidence from 0.0 to 1.0.
 6. Add at least 2 sources for non-trivial updates.
-7. If no reliable update exists, still return one finding with summary and an empty `proposedChanges` array.
-8. Prefer sources dated 2025-01-01 or later unless older source is required for historical comparison.
+7. Every finding must include `action`.
+8. Use `action="update_entity"` for changes to an existing robot.
+9. Use `action="add_entity"` for a newly discovered company, capability, trend, or robot candidate and include `proposedEntity`.
+10. If no reliable update exists, still return one review-only finding with summary and an empty `proposedChanges` array.
+11. Prefer sources dated 2025-01-01 or later unless older source is required for historical comparison.
 
 Mode-specific policy:
 - This is a strict production-update task.
@@ -1075,6 +1251,7 @@ Mode-specific policy:
 - Every proposed change must be directly traceable to cited sources.
 - Prefer primary sources; use secondary sources only as supporting evidence.
 - Do not speculate, infer missing numbers, or generalize from unrelated robots.
+- Return action="update_entity" for known robots only.
 - If evidence conflicts, keep proposedChanges empty and explain conflict in summary.
 
 Output format:
@@ -1094,7 +1271,7 @@ Prompt:
 You are a robotics research agent.
 
 Objective:
-Research updates for robot "Autopicker" by Brightpick on 2026-03-24. Focus on deployments, specs, pricing, capabilities, and limitations.
+Research updates for robot "Autopicker" by Brightpick on 2026-03-25. Focus on deployments, specs, pricing, capabilities, and limitations.
 
 Entity Context:
 - entityType: robot
@@ -1110,8 +1287,11 @@ Instructions:
 4. Return ONLY JSON (no markdown, no prose outside JSON).
 5. Keep confidence from 0.0 to 1.0.
 6. Add at least 2 sources for non-trivial updates.
-7. If no reliable update exists, still return one finding with summary and an empty `proposedChanges` array.
-8. Prefer sources dated 2025-01-01 or later unless older source is required for historical comparison.
+7. Every finding must include `action`.
+8. Use `action="update_entity"` for changes to an existing robot.
+9. Use `action="add_entity"` for a newly discovered company, capability, trend, or robot candidate and include `proposedEntity`.
+10. If no reliable update exists, still return one review-only finding with summary and an empty `proposedChanges` array.
+11. Prefer sources dated 2025-01-01 or later unless older source is required for historical comparison.
 
 Mode-specific policy:
 - This is a strict production-update task.
@@ -1119,6 +1299,7 @@ Mode-specific policy:
 - Every proposed change must be directly traceable to cited sources.
 - Prefer primary sources; use secondary sources only as supporting evidence.
 - Do not speculate, infer missing numbers, or generalize from unrelated robots.
+- Return action="update_entity" for known robots only.
 - If evidence conflicts, keep proposedChanges empty and explain conflict in summary.
 
 Output format:
@@ -1138,7 +1319,7 @@ Prompt:
 You are a robotics research agent.
 
 Objective:
-Research updates for robot "G1 Mobile Manipulator" by Galbot on 2026-03-24. Focus on deployments, specs, pricing, capabilities, and limitations.
+Research updates for robot "G1 Mobile Manipulator" by Galbot on 2026-03-25. Focus on deployments, specs, pricing, capabilities, and limitations.
 
 Entity Context:
 - entityType: robot
@@ -1154,8 +1335,11 @@ Instructions:
 4. Return ONLY JSON (no markdown, no prose outside JSON).
 5. Keep confidence from 0.0 to 1.0.
 6. Add at least 2 sources for non-trivial updates.
-7. If no reliable update exists, still return one finding with summary and an empty `proposedChanges` array.
-8. Prefer sources dated 2025-01-01 or later unless older source is required for historical comparison.
+7. Every finding must include `action`.
+8. Use `action="update_entity"` for changes to an existing robot.
+9. Use `action="add_entity"` for a newly discovered company, capability, trend, or robot candidate and include `proposedEntity`.
+10. If no reliable update exists, still return one review-only finding with summary and an empty `proposedChanges` array.
+11. Prefer sources dated 2025-01-01 or later unless older source is required for historical comparison.
 
 Mode-specific policy:
 - This is a strict production-update task.
@@ -1163,6 +1347,7 @@ Mode-specific policy:
 - Every proposed change must be directly traceable to cited sources.
 - Prefer primary sources; use secondary sources only as supporting evidence.
 - Do not speculate, infer missing numbers, or generalize from unrelated robots.
+- Return action="update_entity" for known robots only.
 - If evidence conflicts, keep proposedChanges empty and explain conflict in summary.
 
 Output format:
@@ -1182,7 +1367,7 @@ Prompt:
 You are a robotics research agent.
 
 Objective:
-Research updates for robot "Xaver GT" by Fendt (AGCO) on 2026-03-24. Focus on deployments, specs, pricing, capabilities, and limitations.
+Research updates for robot "Xaver GT" by Fendt (AGCO) on 2026-03-25. Focus on deployments, specs, pricing, capabilities, and limitations.
 
 Entity Context:
 - entityType: robot
@@ -1198,8 +1383,11 @@ Instructions:
 4. Return ONLY JSON (no markdown, no prose outside JSON).
 5. Keep confidence from 0.0 to 1.0.
 6. Add at least 2 sources for non-trivial updates.
-7. If no reliable update exists, still return one finding with summary and an empty `proposedChanges` array.
-8. Prefer sources dated 2025-01-01 or later unless older source is required for historical comparison.
+7. Every finding must include `action`.
+8. Use `action="update_entity"` for changes to an existing robot.
+9. Use `action="add_entity"` for a newly discovered company, capability, trend, or robot candidate and include `proposedEntity`.
+10. If no reliable update exists, still return one review-only finding with summary and an empty `proposedChanges` array.
+11. Prefer sources dated 2025-01-01 or later unless older source is required for historical comparison.
 
 Mode-specific policy:
 - This is a strict production-update task.
@@ -1207,6 +1395,7 @@ Mode-specific policy:
 - Every proposed change must be directly traceable to cited sources.
 - Prefer primary sources; use secondary sources only as supporting evidence.
 - Do not speculate, infer missing numbers, or generalize from unrelated robots.
+- Return action="update_entity" for known robots only.
 - If evidence conflicts, keep proposedChanges empty and explain conflict in summary.
 
 Output format:
@@ -1226,7 +1415,7 @@ Prompt:
 You are a robotics research agent.
 
 Objective:
-Research updates for robot "John Deere Autonomy 2.0" by John Deere on 2026-03-24. Focus on deployments, specs, pricing, capabilities, and limitations.
+Research updates for robot "John Deere Autonomy 2.0" by John Deere on 2026-03-25. Focus on deployments, specs, pricing, capabilities, and limitations.
 
 Entity Context:
 - entityType: robot
@@ -1242,8 +1431,11 @@ Instructions:
 4. Return ONLY JSON (no markdown, no prose outside JSON).
 5. Keep confidence from 0.0 to 1.0.
 6. Add at least 2 sources for non-trivial updates.
-7. If no reliable update exists, still return one finding with summary and an empty `proposedChanges` array.
-8. Prefer sources dated 2025-01-01 or later unless older source is required for historical comparison.
+7. Every finding must include `action`.
+8. Use `action="update_entity"` for changes to an existing robot.
+9. Use `action="add_entity"` for a newly discovered company, capability, trend, or robot candidate and include `proposedEntity`.
+10. If no reliable update exists, still return one review-only finding with summary and an empty `proposedChanges` array.
+11. Prefer sources dated 2025-01-01 or later unless older source is required for historical comparison.
 
 Mode-specific policy:
 - This is a strict production-update task.
@@ -1251,6 +1443,7 @@ Mode-specific policy:
 - Every proposed change must be directly traceable to cited sources.
 - Prefer primary sources; use secondary sources only as supporting evidence.
 - Do not speculate, infer missing numbers, or generalize from unrelated robots.
+- Return action="update_entity" for known robots only.
 - If evidence conflicts, keep proposedChanges empty and explain conflict in summary.
 
 Output format:
@@ -1270,7 +1463,7 @@ Prompt:
 You are a robotics research agent.
 
 Objective:
-Research updates for robot "Geek+ AMR" by Geek+ on 2026-03-24. Focus on deployments, specs, pricing, capabilities, and limitations.
+Research updates for robot "Geek+ AMR" by Geek+ on 2026-03-25. Focus on deployments, specs, pricing, capabilities, and limitations.
 
 Entity Context:
 - entityType: robot
@@ -1286,8 +1479,11 @@ Instructions:
 4. Return ONLY JSON (no markdown, no prose outside JSON).
 5. Keep confidence from 0.0 to 1.0.
 6. Add at least 2 sources for non-trivial updates.
-7. If no reliable update exists, still return one finding with summary and an empty `proposedChanges` array.
-8. Prefer sources dated 2025-01-01 or later unless older source is required for historical comparison.
+7. Every finding must include `action`.
+8. Use `action="update_entity"` for changes to an existing robot.
+9. Use `action="add_entity"` for a newly discovered company, capability, trend, or robot candidate and include `proposedEntity`.
+10. If no reliable update exists, still return one review-only finding with summary and an empty `proposedChanges` array.
+11. Prefer sources dated 2025-01-01 or later unless older source is required for historical comparison.
 
 Mode-specific policy:
 - This is a strict production-update task.
@@ -1295,6 +1491,7 @@ Mode-specific policy:
 - Every proposed change must be directly traceable to cited sources.
 - Prefer primary sources; use secondary sources only as supporting evidence.
 - Do not speculate, infer missing numbers, or generalize from unrelated robots.
+- Return action="update_entity" for known robots only.
 - If evidence conflicts, keep proposedChanges empty and explain conflict in summary.
 
 Output format:
@@ -1314,7 +1511,7 @@ Prompt:
 You are a robotics research agent.
 
 Objective:
-Research updates for robot "GreyOrange Butler" by GreyOrange on 2026-03-24. Focus on deployments, specs, pricing, capabilities, and limitations.
+Research updates for robot "GreyOrange Butler" by GreyOrange on 2026-03-25. Focus on deployments, specs, pricing, capabilities, and limitations.
 
 Entity Context:
 - entityType: robot
@@ -1330,8 +1527,11 @@ Instructions:
 4. Return ONLY JSON (no markdown, no prose outside JSON).
 5. Keep confidence from 0.0 to 1.0.
 6. Add at least 2 sources for non-trivial updates.
-7. If no reliable update exists, still return one finding with summary and an empty `proposedChanges` array.
-8. Prefer sources dated 2025-01-01 or later unless older source is required for historical comparison.
+7. Every finding must include `action`.
+8. Use `action="update_entity"` for changes to an existing robot.
+9. Use `action="add_entity"` for a newly discovered company, capability, trend, or robot candidate and include `proposedEntity`.
+10. If no reliable update exists, still return one review-only finding with summary and an empty `proposedChanges` array.
+11. Prefer sources dated 2025-01-01 or later unless older source is required for historical comparison.
 
 Mode-specific policy:
 - This is a strict production-update task.
@@ -1339,6 +1539,7 @@ Mode-specific policy:
 - Every proposed change must be directly traceable to cited sources.
 - Prefer primary sources; use secondary sources only as supporting evidence.
 - Do not speculate, infer missing numbers, or generalize from unrelated robots.
+- Return action="update_entity" for known robots only.
 - If evidence conflicts, keep proposedChanges empty and explain conflict in summary.
 
 Output format:
@@ -1358,7 +1559,7 @@ Prompt:
 You are a robotics research agent.
 
 Objective:
-Research updates for robot "MC600 Mobile Manipulator" by Mobile Industrial Robots (MiR) on 2026-03-24. Focus on deployments, specs, pricing, capabilities, and limitations.
+Research updates for robot "MC600 Mobile Manipulator" by Mobile Industrial Robots (MiR) on 2026-03-25. Focus on deployments, specs, pricing, capabilities, and limitations.
 
 Entity Context:
 - entityType: robot
@@ -1374,8 +1575,11 @@ Instructions:
 4. Return ONLY JSON (no markdown, no prose outside JSON).
 5. Keep confidence from 0.0 to 1.0.
 6. Add at least 2 sources for non-trivial updates.
-7. If no reliable update exists, still return one finding with summary and an empty `proposedChanges` array.
-8. Prefer sources dated 2025-01-01 or later unless older source is required for historical comparison.
+7. Every finding must include `action`.
+8. Use `action="update_entity"` for changes to an existing robot.
+9. Use `action="add_entity"` for a newly discovered company, capability, trend, or robot candidate and include `proposedEntity`.
+10. If no reliable update exists, still return one review-only finding with summary and an empty `proposedChanges` array.
+11. Prefer sources dated 2025-01-01 or later unless older source is required for historical comparison.
 
 Mode-specific policy:
 - This is a strict production-update task.
@@ -1383,6 +1587,7 @@ Mode-specific policy:
 - Every proposed change must be directly traceable to cited sources.
 - Prefer primary sources; use secondary sources only as supporting evidence.
 - Do not speculate, infer missing numbers, or generalize from unrelated robots.
+- Return action="update_entity" for known robots only.
 - If evidence conflicts, keep proposedChanges empty and explain conflict in summary.
 
 Output format:
@@ -1402,7 +1607,7 @@ Prompt:
 You are a robotics research agent.
 
 Objective:
-Research updates for robot "Nuro R3" by Nuro on 2026-03-24. Focus on deployments, specs, pricing, capabilities, and limitations.
+Research updates for robot "Nuro R3" by Nuro on 2026-03-25. Focus on deployments, specs, pricing, capabilities, and limitations.
 
 Entity Context:
 - entityType: robot
@@ -1418,8 +1623,11 @@ Instructions:
 4. Return ONLY JSON (no markdown, no prose outside JSON).
 5. Keep confidence from 0.0 to 1.0.
 6. Add at least 2 sources for non-trivial updates.
-7. If no reliable update exists, still return one finding with summary and an empty `proposedChanges` array.
-8. Prefer sources dated 2025-01-01 or later unless older source is required for historical comparison.
+7. Every finding must include `action`.
+8. Use `action="update_entity"` for changes to an existing robot.
+9. Use `action="add_entity"` for a newly discovered company, capability, trend, or robot candidate and include `proposedEntity`.
+10. If no reliable update exists, still return one review-only finding with summary and an empty `proposedChanges` array.
+11. Prefer sources dated 2025-01-01 or later unless older source is required for historical comparison.
 
 Mode-specific policy:
 - This is a strict production-update task.
@@ -1427,6 +1635,7 @@ Mode-specific policy:
 - Every proposed change must be directly traceable to cited sources.
 - Prefer primary sources; use secondary sources only as supporting evidence.
 - Do not speculate, infer missing numbers, or generalize from unrelated robots.
+- Return action="update_entity" for known robots only.
 - If evidence conflicts, keep proposedChanges empty and explain conflict in summary.
 
 Output format:
@@ -1446,7 +1655,7 @@ Prompt:
 You are a robotics research agent.
 
 Objective:
-Research updates for robot "Ecorobotix" by Ecorobotix on 2026-03-24. Focus on deployments, specs, pricing, capabilities, and limitations.
+Research updates for robot "Ecorobotix" by Ecorobotix on 2026-03-25. Focus on deployments, specs, pricing, capabilities, and limitations.
 
 Entity Context:
 - entityType: robot
@@ -1462,8 +1671,11 @@ Instructions:
 4. Return ONLY JSON (no markdown, no prose outside JSON).
 5. Keep confidence from 0.0 to 1.0.
 6. Add at least 2 sources for non-trivial updates.
-7. If no reliable update exists, still return one finding with summary and an empty `proposedChanges` array.
-8. Prefer sources dated 2025-01-01 or later unless older source is required for historical comparison.
+7. Every finding must include `action`.
+8. Use `action="update_entity"` for changes to an existing robot.
+9. Use `action="add_entity"` for a newly discovered company, capability, trend, or robot candidate and include `proposedEntity`.
+10. If no reliable update exists, still return one review-only finding with summary and an empty `proposedChanges` array.
+11. Prefer sources dated 2025-01-01 or later unless older source is required for historical comparison.
 
 Mode-specific policy:
 - This is a strict production-update task.
@@ -1471,6 +1683,7 @@ Mode-specific policy:
 - Every proposed change must be directly traceable to cited sources.
 - Prefer primary sources; use secondary sources only as supporting evidence.
 - Do not speculate, infer missing numbers, or generalize from unrelated robots.
+- Return action="update_entity" for known robots only.
 - If evidence conflicts, keep proposedChanges empty and explain conflict in summary.
 
 Output format:
@@ -1490,7 +1703,7 @@ Prompt:
 You are a robotics research agent.
 
 Objective:
-Research updates for robot "Thorvald" by Saga Robotics on 2026-03-24. Focus on deployments, specs, pricing, capabilities, and limitations.
+Research updates for robot "Thorvald" by Saga Robotics on 2026-03-25. Focus on deployments, specs, pricing, capabilities, and limitations.
 
 Entity Context:
 - entityType: robot
@@ -1506,8 +1719,11 @@ Instructions:
 4. Return ONLY JSON (no markdown, no prose outside JSON).
 5. Keep confidence from 0.0 to 1.0.
 6. Add at least 2 sources for non-trivial updates.
-7. If no reliable update exists, still return one finding with summary and an empty `proposedChanges` array.
-8. Prefer sources dated 2025-01-01 or later unless older source is required for historical comparison.
+7. Every finding must include `action`.
+8. Use `action="update_entity"` for changes to an existing robot.
+9. Use `action="add_entity"` for a newly discovered company, capability, trend, or robot candidate and include `proposedEntity`.
+10. If no reliable update exists, still return one review-only finding with summary and an empty `proposedChanges` array.
+11. Prefer sources dated 2025-01-01 or later unless older source is required for historical comparison.
 
 Mode-specific policy:
 - This is a strict production-update task.
@@ -1515,6 +1731,7 @@ Mode-specific policy:
 - Every proposed change must be directly traceable to cited sources.
 - Prefer primary sources; use secondary sources only as supporting evidence.
 - Do not speculate, infer missing numbers, or generalize from unrelated robots.
+- Return action="update_entity" for known robots only.
 - If evidence conflicts, keep proposedChanges empty and explain conflict in summary.
 
 Output format:
@@ -1534,7 +1751,7 @@ Prompt:
 You are a robotics research agent.
 
 Objective:
-Research updates for robot "SwarmBot" by SwarmFarm Robotics on 2026-03-24. Focus on deployments, specs, pricing, capabilities, and limitations.
+Research updates for robot "SwarmBot" by SwarmFarm Robotics on 2026-03-25. Focus on deployments, specs, pricing, capabilities, and limitations.
 
 Entity Context:
 - entityType: robot
@@ -1550,8 +1767,11 @@ Instructions:
 4. Return ONLY JSON (no markdown, no prose outside JSON).
 5. Keep confidence from 0.0 to 1.0.
 6. Add at least 2 sources for non-trivial updates.
-7. If no reliable update exists, still return one finding with summary and an empty `proposedChanges` array.
-8. Prefer sources dated 2025-01-01 or later unless older source is required for historical comparison.
+7. Every finding must include `action`.
+8. Use `action="update_entity"` for changes to an existing robot.
+9. Use `action="add_entity"` for a newly discovered company, capability, trend, or robot candidate and include `proposedEntity`.
+10. If no reliable update exists, still return one review-only finding with summary and an empty `proposedChanges` array.
+11. Prefer sources dated 2025-01-01 or later unless older source is required for historical comparison.
 
 Mode-specific policy:
 - This is a strict production-update task.
@@ -1559,6 +1779,7 @@ Mode-specific policy:
 - Every proposed change must be directly traceable to cited sources.
 - Prefer primary sources; use secondary sources only as supporting evidence.
 - Do not speculate, infer missing numbers, or generalize from unrelated robots.
+- Return action="update_entity" for known robots only.
 - If evidence conflicts, keep proposedChanges empty and explain conflict in summary.
 
 Output format:
@@ -1578,7 +1799,7 @@ Prompt:
 You are a robotics research agent.
 
 Objective:
-Research updates for robot "Dexterity Mech" by Dexterity on 2026-03-24. Focus on deployments, specs, pricing, capabilities, and limitations.
+Research updates for robot "Dexterity Mech" by Dexterity on 2026-03-25. Focus on deployments, specs, pricing, capabilities, and limitations.
 
 Entity Context:
 - entityType: robot
@@ -1594,8 +1815,11 @@ Instructions:
 4. Return ONLY JSON (no markdown, no prose outside JSON).
 5. Keep confidence from 0.0 to 1.0.
 6. Add at least 2 sources for non-trivial updates.
-7. If no reliable update exists, still return one finding with summary and an empty `proposedChanges` array.
-8. Prefer sources dated 2025-01-01 or later unless older source is required for historical comparison.
+7. Every finding must include `action`.
+8. Use `action="update_entity"` for changes to an existing robot.
+9. Use `action="add_entity"` for a newly discovered company, capability, trend, or robot candidate and include `proposedEntity`.
+10. If no reliable update exists, still return one review-only finding with summary and an empty `proposedChanges` array.
+11. Prefer sources dated 2025-01-01 or later unless older source is required for historical comparison.
 
 Mode-specific policy:
 - This is a strict production-update task.
@@ -1603,6 +1827,7 @@ Mode-specific policy:
 - Every proposed change must be directly traceable to cited sources.
 - Prefer primary sources; use secondary sources only as supporting evidence.
 - Do not speculate, infer missing numbers, or generalize from unrelated robots.
+- Return action="update_entity" for known robots only.
 - If evidence conflicts, keep proposedChanges empty and explain conflict in summary.
 
 Output format:
@@ -1622,7 +1847,7 @@ Prompt:
 You are a robotics research agent.
 
 Objective:
-Research updates for robot "EAC 212a" by Jungheinrich on 2026-03-24. Focus on deployments, specs, pricing, capabilities, and limitations.
+Research updates for robot "EAC 212a" by Jungheinrich on 2026-03-25. Focus on deployments, specs, pricing, capabilities, and limitations.
 
 Entity Context:
 - entityType: robot
@@ -1638,8 +1863,11 @@ Instructions:
 4. Return ONLY JSON (no markdown, no prose outside JSON).
 5. Keep confidence from 0.0 to 1.0.
 6. Add at least 2 sources for non-trivial updates.
-7. If no reliable update exists, still return one finding with summary and an empty `proposedChanges` array.
-8. Prefer sources dated 2025-01-01 or later unless older source is required for historical comparison.
+7. Every finding must include `action`.
+8. Use `action="update_entity"` for changes to an existing robot.
+9. Use `action="add_entity"` for a newly discovered company, capability, trend, or robot candidate and include `proposedEntity`.
+10. If no reliable update exists, still return one review-only finding with summary and an empty `proposedChanges` array.
+11. Prefer sources dated 2025-01-01 or later unless older source is required for historical comparison.
 
 Mode-specific policy:
 - This is a strict production-update task.
@@ -1647,6 +1875,7 @@ Mode-specific policy:
 - Every proposed change must be directly traceable to cited sources.
 - Prefer primary sources; use secondary sources only as supporting evidence.
 - Do not speculate, infer missing numbers, or generalize from unrelated robots.
+- Return action="update_entity" for known robots only.
 - If evidence conflicts, keep proposedChanges empty and explain conflict in summary.
 
 Output format:
@@ -1666,7 +1895,7 @@ Prompt:
 You are a robotics research agent.
 
 Objective:
-Research updates for robot "Model C2 PartPorter" by Quasi Robotics on 2026-03-24. Focus on deployments, specs, pricing, capabilities, and limitations.
+Research updates for robot "Model C2 PartPorter" by Quasi Robotics on 2026-03-25. Focus on deployments, specs, pricing, capabilities, and limitations.
 
 Entity Context:
 - entityType: robot
@@ -1682,8 +1911,11 @@ Instructions:
 4. Return ONLY JSON (no markdown, no prose outside JSON).
 5. Keep confidence from 0.0 to 1.0.
 6. Add at least 2 sources for non-trivial updates.
-7. If no reliable update exists, still return one finding with summary and an empty `proposedChanges` array.
-8. Prefer sources dated 2025-01-01 or later unless older source is required for historical comparison.
+7. Every finding must include `action`.
+8. Use `action="update_entity"` for changes to an existing robot.
+9. Use `action="add_entity"` for a newly discovered company, capability, trend, or robot candidate and include `proposedEntity`.
+10. If no reliable update exists, still return one review-only finding with summary and an empty `proposedChanges` array.
+11. Prefer sources dated 2025-01-01 or later unless older source is required for historical comparison.
 
 Mode-specific policy:
 - This is a strict production-update task.
@@ -1691,136 +1923,8 @@ Mode-specific policy:
 - Every proposed change must be directly traceable to cited sources.
 - Prefer primary sources; use secondary sources only as supporting evidence.
 - Do not speculate, infer missing numbers, or generalize from unrelated robots.
+- Return action="update_entity" for known robots only.
 - If evidence conflicts, keep proposedChanges empty and explain conflict in summary.
-
-Output format:
-- JSON array of findings conforming to provided schema.
-
-```
-
-### 37. topic-new-commercial-robot-deployments (high)
-Type: discovery
-Entity: New commercial robot deployments
-Query hints:
-- commercial robot deployment 2026
-- robotics company announced new robot 2026
-- warehouse humanoid deployment pilot production
-Prompt:
-```text
-You are a robotics research agent.
-
-Objective:
-Identify newly announced or newly deployed commercial robots (2025-2026) not already tracked in the dataset.
-
-Entity Context:
-- entityType: new_robot
-- entityId: new-commercial-robot-deployments
-- entityName: New commercial robot deployments
-- manufacturer: 
-- mode: broad_scan
-
-Instructions:
-1. Use web/search/browser tools available to you.
-2. Prioritize primary sources (company release, official docs, regulatory filings) and reputable reporting.
-3. Collect publish dates and exact URLs for every claim.
-4. Return ONLY JSON (no markdown, no prose outside JSON).
-5. Keep confidence from 0.0 to 1.0.
-6. Add at least 2 sources for non-trivial updates.
-7. If no reliable update exists, still return one finding with summary and an empty `proposedChanges` array.
-8. Prefer sources dated 2025-01-01 or later unless older source is required for historical comparison.
-
-Mode-specific policy:
-- This is a broad discovery-scan task.
-- Maximize coverage of new entities/signals, even with moderate confidence.
-- Include early signals (pilots, announcements, funding, notable demos) with clear caveats.
-- Keep speculative findings low confidence (< 0.6) and avoid hard field-change proposals.
-- For broad scan, proposedChanges may be empty when findings are not production-grade.
-
-Output format:
-- JSON array of findings conforming to provided schema.
-
-```
-
-### 38. topic-cross-industry-capability-trends (medium)
-Type: discovery
-Entity: Cross-industry capability trends
-Query hints:
-- robotics autonomy trend 2026
-- robotics reliability MTBF deployment
-- robotics dexterity benchmark industry
-Prompt:
-```text
-You are a robotics research agent.
-
-Objective:
-Identify meaningful capability shifts across industries: autonomy, reliability, dexterity, and deployment scale.
-
-Entity Context:
-- entityType: trend
-- entityId: cross-industry-capability-trends
-- entityName: Cross-industry capability trends
-- manufacturer: 
-- mode: broad_scan
-
-Instructions:
-1. Use web/search/browser tools available to you.
-2. Prioritize primary sources (company release, official docs, regulatory filings) and reputable reporting.
-3. Collect publish dates and exact URLs for every claim.
-4. Return ONLY JSON (no markdown, no prose outside JSON).
-5. Keep confidence from 0.0 to 1.0.
-6. Add at least 2 sources for non-trivial updates.
-7. If no reliable update exists, still return one finding with summary and an empty `proposedChanges` array.
-8. Prefer sources dated 2025-01-01 or later unless older source is required for historical comparison.
-
-Mode-specific policy:
-- This is a broad discovery-scan task.
-- Maximize coverage of new entities/signals, even with moderate confidence.
-- Include early signals (pilots, announcements, funding, notable demos) with clear caveats.
-- Keep speculative findings low confidence (< 0.6) and avoid hard field-change proposals.
-- For broad scan, proposedChanges may be empty when findings are not production-grade.
-
-Output format:
-- JSON array of findings conforming to provided schema.
-
-```
-
-### 39. topic-pricing-and-business-model-changes (medium)
-Type: discovery
-Entity: Pricing and business model changes
-Query hints:
-- robot as a service pricing update 2026
-- robotics subscription contract commercial
-- robotics capex pricing industrial
-Prompt:
-```text
-You are a robotics research agent.
-
-Objective:
-Find pricing model changes (RaaS, capex, service contracts) for major commercial robots.
-
-Entity Context:
-- entityType: trend
-- entityId: pricing-and-business-model-changes
-- entityName: Pricing and business model changes
-- manufacturer: 
-- mode: broad_scan
-
-Instructions:
-1. Use web/search/browser tools available to you.
-2. Prioritize primary sources (company release, official docs, regulatory filings) and reputable reporting.
-3. Collect publish dates and exact URLs for every claim.
-4. Return ONLY JSON (no markdown, no prose outside JSON).
-5. Keep confidence from 0.0 to 1.0.
-6. Add at least 2 sources for non-trivial updates.
-7. If no reliable update exists, still return one finding with summary and an empty `proposedChanges` array.
-8. Prefer sources dated 2025-01-01 or later unless older source is required for historical comparison.
-
-Mode-specific policy:
-- This is a broad discovery-scan task.
-- Maximize coverage of new entities/signals, even with moderate confidence.
-- Include early signals (pilots, announcements, funding, notable demos) with clear caveats.
-- Keep speculative findings low confidence (< 0.6) and avoid hard field-change proposals.
-- For broad scan, proposedChanges may be empty when findings are not production-grade.
 
 Output format:
 - JSON array of findings conforming to provided schema.

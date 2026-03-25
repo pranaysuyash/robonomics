@@ -1,0 +1,21 @@
+{
+  "generatedAt": "2026-03-25T11:09:47.082Z",
+  "accepted": [],
+  "rejected": [],
+  "providerResults": [
+    {
+      "provider": "hermes",
+      "status": "failed",
+      "executedTasks": 1,
+      "acceptedTopics": 0,
+      "rejectedTopics": 0,
+      "parseError": "Unable to parse JSON array from provider output"
+    },
+    {
+      "provider": "manual",
+      "status": "manual_only",
+      "executedTasks": 0,
+      "acceptedTopics": 0
+    }
+  ]
+}

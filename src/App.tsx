@@ -20,7 +20,9 @@ import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
-import { industries, professions, robots } from './data/robots';
+import { industries } from './data/industries';
+import { professions } from './data/professions';
+import { robots } from './data/robots';
 import { Robot, Profession, Industry, Task, Capability, Evidence } from './types';
 
 function cn(...inputs: ClassValue[]) {

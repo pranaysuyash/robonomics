@@ -1,10 +1,11 @@
 {
-  "generatedAt": "2026-03-24T10:53:41.229Z",
+  "generatedAt": "2026-03-25T11:09:47.091Z",
   "stats": {
     "robots": 36,
-    "tasks": 39,
-    "providers": 1,
-    "highPriorityTasks": 37
+    "tasks": 36,
+    "providers": 2,
+    "highPriorityTasks": 36,
+    "expandedTopics": 0
   },
   "robots": [
     {
@@ -225,6 +226,25 @@
     }
   ],
   "providerPlan": [
+    {
+      "id": "hermes",
+      "type": "command",
+      "enabled": true,
+      "command": "hermes",
+      "args": [
+        "chat",
+        "-Q",
+        "--provider",
+        "openai-codex",
+        "-m",
+        "gpt-5",
+        "-q",
+        "{{PAYLOAD}}"
+      ],
+      "inputMode": "none",
+      "timeoutMs": 300000,
+      "instruction": "Use your available web/search/browser tools, verify sources, and return valid JSON only matching the contract."
+    },
     {
       "id": "manual",
       "type": "manual",
@@ -806,48 +826,6 @@
         "Model C2 PartPorter Quasi Robotics 2025 2026 deployment",
         "Model C2 PartPorter specs pricing",
         "Model C2 PartPorter limitations issues"
-      ]
-    },
-    {
-      "id": "topic-new-commercial-robot-deployments",
-      "type": "discovery",
-      "priority": "high",
-      "entity": {
-        "id": "new-commercial-robot-deployments",
-        "name": "New commercial robot deployments"
-      },
-      "queryHints": [
-        "commercial robot deployment 2026",
-        "robotics company announced new robot 2026",
-        "warehouse humanoid deployment pilot production"
-      ]
-    },
-    {
-      "id": "topic-cross-industry-capability-trends",
-      "type": "discovery",
-      "priority": "medium",
-      "entity": {
-        "id": "cross-industry-capability-trends",
-        "name": "Cross-industry capability trends"
-      },
-      "queryHints": [
-        "robotics autonomy trend 2026",
-        "robotics reliability MTBF deployment",
-        "robotics dexterity benchmark industry"
-      ]
-    },
-    {
-      "id": "topic-pricing-and-business-model-changes",
-      "type": "discovery",
-      "priority": "medium",
-      "entity": {
-        "id": "pricing-and-business-model-changes",
-        "name": "Pricing and business model changes"
-      },
-      "queryHints": [
-        "robot as a service pricing update 2026",
-        "robotics subscription contract commercial",
-        "robotics capex pricing industrial"
       ]
     }
   ]

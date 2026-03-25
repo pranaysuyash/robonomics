@@ -1,13 +1,4 @@
-export type Industry = 
-  | 'Agriculture' 
-  | 'Construction' 
-  | 'Logistics' 
-  | 'Food Service' 
-  | 'Medical' 
-  | 'Manufacturing' 
-  | 'Maintenance' 
-  | 'Retail' 
-  | 'Security';
+export type Industry = string;
 
 export interface Task {
   id: string;

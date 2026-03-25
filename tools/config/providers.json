@@ -1,5 +1,5 @@
 {
-  "defaultProviderOrder": ["hermes", "manual"],
+  "defaultProviderOrder": ["manual", "hermes"],
   "providers": [
     {
       "id": "hermes",
@@ -9,7 +9,7 @@
       "args": ["chat", "-Q", "--provider", "openai-codex", "-m", "gpt-5", "-q", "{{PAYLOAD}}"],
       "inputMode": "none",
       "timeoutMs": 300000,
-      "instruction": "Use your available web/search/browser tools, verify sources, and return valid JSON only matching the schema."
+      "instruction": "Use your available web/search/browser tools, verify sources, and return valid JSON only matching the contract."
     },
     {
       "id": "manual",

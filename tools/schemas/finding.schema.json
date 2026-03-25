@@ -6,6 +6,7 @@
     "taskId",
     "entityType",
     "entityId",
+    "action",
     "summary",
     "confidence",
     "sources",
@@ -13,9 +14,13 @@
   ],
   "properties": {
     "taskId": { "type": "string" },
+    "action": {
+      "type": "string",
+      "enum": ["update_entity", "add_entity"]
+    },
     "entityType": {
       "type": "string",
-      "enum": ["robot", "industry", "trend", "new_robot"]
+      "enum": ["robot", "industry", "trend", "company", "capability", "use_case", "new_robot"]
     },
     "entityId": { "type": "string" },
     "summary": { "type": "string" },
@@ -45,6 +50,92 @@
           "reason": { "type": "string" }
         }
       }
+    },
+    "proposedEntity": {
+      "type": "object",
+      "required": ["id", "name", "entityType", "summary"],
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "entityType": {
+          "type": "string",
+          "enum": ["robot", "industry", "trend", "company", "capability", "use_case", "new_robot"]
+        },
+        "summary": { "type": "string" },
+        "manufacturer": { "type": "string" },
+        "pricingModel": { "type": "string" },
+        "availability": { "type": "string" },
+        "description": { "type": "string" },
+        "deploymentCount": { "type": "string" },
+        "videoUrl": { "type": "string" },
+        "limitations": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "specs": {
+          "type": "object",
+          "additionalProperties": { "type": "string" }
+        },
+        "evidence": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["id", "title", "url", "type", "verified", "deploymentType"],
+            "properties": {
+              "id": { "type": "string" },
+              "title": { "type": "string" },
+              "url": { "type": "string" },
+              "type": { "type": "string" },
+              "verified": { "type": "boolean" },
+              "deploymentType": { "type": "string" }
+            }
+          }
+        },
+        "capabilities": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["taskId", "successLevel", "confidenceScore", "evidenceIds", "notes"],
+            "properties": {
+              "taskId": { "type": "string" },
+              "successLevel": { "type": "string" },
+              "confidenceScore": { "type": "number" },
+              "evidenceIds": {
+                "type": "array",
+                "items": { "type": "string" }
+              },
+              "notes": { "type": "string" }
+            }
+          }
+        },
+        "futureImpactScore": { "type": "number" }
+      },
+      "additionalProperties": true
     }
-  }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "action": { "const": "add_entity" }
+        }
+      },
+      "then": {
+        "required": ["proposedEntity"]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "action": { "const": "update_entity" }
+        }
+      },
+      "then": {
+        "not": {
+          "required": ["proposedEntity"]
+        }
+      }
+    }
+  ],
+  "additionalProperties": true
 }

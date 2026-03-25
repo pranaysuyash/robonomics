@@ -11,7 +11,8 @@
     "lint": "tsc --noEmit",
     "research": "node tools/research.js",
     "research:manual": "node tools/research.js --manual",
-    "research:prompts": "node tools/research.js --prompts"
+    "research:prompts": "node tools/research.js --prompts",
+    "test:research": "node --test tests/research-contract.test.mjs"
   },
   "dependencies": {
     "@google/genai": "^1.29.0",
